@@ -1,0 +1,4 @@
+-r requirements.txt
+whitenoise==6.5.0
+daphne==4.0.0
+gunicorn==21.2.0

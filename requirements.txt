@@ -1,0 +1,27 @@
+django>=4.2.0,<4.3.0
+channels>=4.0.0
+channels-redis>=4.0.0
+djangorestframework>=3.14.0
+pydantic>=2.0.0
+openai>=1.0.0
+pydantic-ai>=0.7.0
+celery>=5.0.0
+redis>=5.0.0
+requests>=2.0.0
+python-dotenv>=1.0.0
+arxiv>=2.0.0
+numpy>=1.20.0
+tenacity>=8.0.0
+drf-yasg>=1.0.0
+PyPDF2>=2.0.0
+# Database
+psycopg2-binary==2.9.9
+dj-database-url==2.1.0
+
+# Production packages
+# Only needed for production deployment - not for development
+# Install with: pip install -r requirements.txt[production]
+daphne==4.0.0; python_version >= "3.8"  # ASGI server
+gunicorn==21.2.0; python_version >= "3.8"  # WSGI server
+whitenoise==6.5.0; python_version >= "3.8"  # Static file serving
+django-cors-headers==4.3.1; python_version >= "3.8"  # CORS handling
