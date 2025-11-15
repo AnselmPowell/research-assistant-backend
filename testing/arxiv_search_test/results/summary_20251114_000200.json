@@ -1,0 +1,41 @@
+{
+  "timestamp": "2025-11-14T00:02:00.443256",
+  "methods_tested": [
+    "method1",
+    "method2",
+    "method3",
+    "method4"
+  ],
+  "test_cases": [
+    "robotics_autonomy"
+  ],
+  "total_tests": 4,
+  "successful_tests": 4,
+  "max_results_per_test": 20,
+  "summary_by_method": {
+    "method1": {
+      "total_tests": 1,
+      "successful_tests": 1,
+      "avg_execution_time": 38.19866132736206,
+      "avg_results_returned": 20.0
+    },
+    "method2": {
+      "total_tests": 1,
+      "successful_tests": 1,
+      "avg_execution_time": 7.111968994140625,
+      "avg_results_returned": 20.0
+    },
+    "method3": {
+      "total_tests": 1,
+      "successful_tests": 1,
+      "avg_execution_time": 5.786314964294434,
+      "avg_results_returned": 20.0
+    },
+    "method4": {
+      "total_tests": 1,
+      "successful_tests": 1,
+      "avg_execution_time": 35.91175174713135,
+      "avg_results_returned": 20.0
+    }
+  }
+}
