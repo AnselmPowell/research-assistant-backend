@@ -3,12 +3,20 @@ Models for the core application.
 """
 
 from django.db import models
+from django.contrib.auth.models import User
 import uuid
 from django.utils import timezone
 
 class ResearchSession(models.Model):
     """A research session initiated by a user."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='research_sessions',
+        null=True,  # Allow null temporarily for migration
+        blank=True
+    )
     topics = models.JSONField(default=list)
     info_queries = models.JSONField(default=list)
     direct_urls = models.JSONField(default=list)
@@ -28,11 +36,13 @@ class ResearchSession(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f"Session {self.id} - {self.status}"
+        user_info = f" (User: {self.user.email})" if self.user else " (Anonymous)"
+        return f"Session {self.id}{user_info} - {self.status}"
     
     class Meta:
         ordering = ['-created_at']
         indexes = [
+            models.Index(fields=['user']),  # Add user index for filtering
             models.Index(fields=['status']),
             models.Index(fields=['created_at']),
         ]
@@ -166,17 +176,26 @@ class Note(models.Model):
 class Project(models.Model):
     """User-created project for organizing research notes."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='projects',
+        null=True,  # Allow null temporarily for migration
+        blank=True
+    )
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f"Project: {self.name}"
+        user_info = f" (User: {self.user.email})" if self.user else " (Anonymous)"
+        return f"Project: {self.name}{user_info}"
     
     class Meta:
         ordering = ['-created_at']
         indexes = [
+            models.Index(fields=['user']),
             models.Index(fields=['created_at']),
         ]
     
@@ -196,6 +215,13 @@ class Project(models.Model):
 class Section(models.Model):
     """Section within a project."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='sections',
+        null=True,  # Allow null temporarily for migration
+        blank=True
+    )
     project = models.ForeignKey(Project, related_name='sections', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     order = models.IntegerField(default=0)
@@ -207,6 +233,7 @@ class Section(models.Model):
     class Meta:
         ordering = ['order', 'created_at']
         indexes = [
+            models.Index(fields=['user']),
             models.Index(fields=['project']),
         ]
     
@@ -225,24 +252,32 @@ class Section(models.Model):
 class Group(models.Model):
     """Group within a section or directly in a project."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='note_groups',  # Changed from 'groups' to avoid clash
+        null=True,  # Allow null temporarily for migration
+        blank=True
+    )
     name = models.CharField(max_length=255)
     section = models.ForeignKey(Section, related_name='groups', on_delete=models.CASCADE, null=True, blank=True)
     project = models.ForeignKey(Project, related_name='project_groups', on_delete=models.CASCADE)
     order = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         if self.section:
             return f"Group: {self.name} (in section {self.section.name})"
         return f"Group: {self.name} (in project {self.project.name})"
-    
+
     class Meta:
         ordering = ['order', 'created_at']
         indexes = [
+            models.Index(fields=['user']),
             models.Index(fields=['section']),
             models.Index(fields=['project']),
         ]
-    
+
     def to_dict(self):
         """Convert group to dictionary."""
         return {

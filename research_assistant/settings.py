@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     
     # Local apps
     'core',
+    'auth_api.apps.AuthApiConfig',  # Authentication system
 ]
 
 MIDDLEWARE = [
@@ -67,6 +68,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'core.middleware.db_connection_middleware.DatabaseConnectionMiddleware',
+    # Auth API middleware
+    'auth_api.middleware.SecurityHeadersMiddleware',
+    'auth_api.middleware.IPBlocklistMiddleware',
+    'auth_api.middleware.RateLimitMiddleware',
 ]
 
 # Add Whitenoise middleware in production only
@@ -204,24 +209,6 @@ if IS_PRODUCTION:
     # Proxy configuration
     USE_X_FORWARDED_HOST = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny' if DEBUG else 'rest_framework.permissions.IsAuthenticated',
-    ],
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer' if DEBUG else 'rest_framework.renderers.JSONRenderer',
-    ],
-    # Add rate limiting for production
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle',
-    ] if IS_PRODUCTION else [],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/hour',
-        'user': '1000/hour',
-    }
-}
 
 # CORS settings
 if IS_PRODUCTION:
@@ -277,6 +264,52 @@ PYDANTIC_AI_CONFIG = {
 
 # Set DEFAULT_MODEL in environment for LLM service
 os.environ['DEFAULT_MODEL'] = 'openai:gpt-4o-mini'
+
+# ============================================================================
+# AUTHENTICATION & AUTHORIZATION SETTINGS
+# ============================================================================
+
+from datetime import timedelta
+
+# Authentication settings
+AUTH_SETTINGS = {
+    'TOKEN_LIFETIME': 60,  # Access token lifetime in minutes
+    'REFRESH_TOKEN_LIFETIME': 7,  # Refresh token lifetime in days
+    'PASSWORD_RESET_TIMEOUT': 24,  # Password reset timeout in hours
+    'MAX_LOGIN_ATTEMPTS': 5,  # Maximum failed login attempts before lockout
+    'LOGIN_ATTEMPT_TIMEOUT': 15  # Lockout duration in minutes
+}
+
+# JWT token settings
+JWT_SETTINGS = {
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=30),  # Long-lived for development
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=31),
+}
+
+# Django REST Framework settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'auth_api.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        # Default to requiring authentication
+        # Views can explicitly require authentication with permission_classes = [IsAuthenticated]
+        'rest_framework.permissions.AllowAny',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+}
+
+# CORS credentials (required for authentication cookies)
+CORS_ALLOW_CREDENTIALS = True
+
+# IP Blocklist (can be managed dynamically later)
+IP_BLOCKLIST = []
 
 # Research Assistant Settings
 SMALL_DOC_PAGE_THRESHOLD = 8  # Documents with 8 or fewer pages use the simple path

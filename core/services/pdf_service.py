@@ -272,11 +272,13 @@ def extract_information_from_text(text: str, search_terms:List[str], queries: Li
     
      \n #######
     
-    Be very focused on what the user is asking for! Don't extract ANY content that might be only remotely relevant. Make sure it is directly relevant to the user's specific queries.
+    Be very strict on what the user is asking for! The "Relevent search terms" are the type of books/subject to help understand the topic better, but you MUST ONLY extract information that DIRECTLY answers the users specific queries above.
+     
+    Don't extract ANY content that might be only remotely relevant. Be STRICT! Make sure it is directly relevant to the user's specific queries.
 
     Important Instructions:
-    1. Extract the exact text from the page that answers or related to the users queries above and include sufficient text surrounding the text to maintain context, Keep in all citation found in the text.
-    2. Extract as much relevant text as the pages provide that answer what the user is looking for - be thorough and comprehensive. 
+    1. Extract the exact text from the page that answers or related closely to the users queries above and include sufficient text surrounding the text to maintain context if needed, Keep in all citation found in the text.
+    2. Extract as much relevant text as the pages provide that answer what the user is looking for - Dont be afraid to return nothing if no information is relevant (REMEBER BE STRICT). 
     3. For each extraction, specify EXACTLY which user query it relates to (use the exact query wording) ("matches_topic")
     4. The provided text from the academic paper contains multiple pages marked with [PAGE N]
     5. ALWAYS include the correct page number for each extracted piece of information

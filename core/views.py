@@ -28,6 +28,8 @@ import PyPDF2
 
 class StartResearchView(APIView):
     """View for starting a research session."""
+    # Allow anyone to start research (unauthenticated or authenticated)
+    permission_classes = []  # Override default authentication requirement
     
     def post(self, request, format=None):
         """
@@ -57,11 +59,15 @@ class StartResearchView(APIView):
             session_id = validated_data.get('sessionId')
             query = validated_data.get('query')
             
+            # Get user if authenticated, None otherwise
+            user = request.user if request.user.is_authenticated else None
+            
             # Create or get session
             if session_id:
                 session, created = ResearchSession.objects.get_or_create(
                     id=session_id,
                     defaults={
+                        'user': user,  # Assign user
                         'topics': query.get('topics', []),
                         'info_queries': query.get('infoQueries', []),
                         'direct_urls': query.get('urls', []),
@@ -71,6 +77,7 @@ class StartResearchView(APIView):
                 
                 if not created:
                     # Update existing session
+                    session.user = user  # Update user
                     session.topics = query.get('topics', [])
                     session.info_queries = query.get('infoQueries', [])
                     session.direct_urls = query.get('urls', [])
@@ -81,6 +88,7 @@ class StartResearchView(APIView):
                 session_id = str(uuid.uuid4())
                 session = ResearchSession.objects.create(
                     id=session_id,
+                    user=user,  # Assign user
                     topics=query.get('topics', []),
                     info_queries=query.get('infoQueries', []),
                     direct_urls=query.get('urls', []),
@@ -185,6 +193,8 @@ class WebSocketTestView(APIView):
 
 class SavedNotesView(APIView):
     """View for retrieving saved notes."""
+    # Allow anyone to access (will filter by user if authenticated)
+    permission_classes = []  # Override default authentication requirement
     
     def get(self, request, format=None):
         """
@@ -194,11 +204,20 @@ class SavedNotesView(APIView):
         - status: Filter by note status (kept, discarded, pending)
         
         Returns a list of notes formatted for the frontend.
+        If user is authenticated, only returns their notes.
+        If user is not authenticated, returns all notes (for backward compatibility).
         """
         status_filter = request.query_params.get('status', 'kept')
         
+        # Start with base query
+        note_query = Note.objects.filter(status=status_filter)
+        
+        # If user is authenticated, filter by user
+        if request.user.is_authenticated:
+            note_query = note_query.filter(paper__session__user=request.user)
+        
         notes = []
-        for note in Note.objects.filter(status=status_filter):
+        for note in note_query:
             notes.append(note.to_frontend_format())
         
         return Response(notes)
@@ -364,10 +383,17 @@ class ProjectListCreateView(APIView):
     def get(self, request, format=None):
         """
         Get all projects with their sections and groups.
+        If user is authenticated, only returns their projects.
+        If user is not authenticated, returns all projects (backward compatible).
         
         Returns a list of projects, each containing their sections and groups.
         """
-        projects = Project.objects.all()
+        # Filter by user if authenticated
+        if request.user.is_authenticated:
+            projects = Project.objects.filter(user=request.user)
+        else:
+            projects = Project.objects.all()
+        
         serializer = ProjectSerializer(projects, many=True)
         return Response(serializer.data)
     
@@ -385,7 +411,9 @@ class ProjectListCreateView(APIView):
         """
         serializer = ProjectSerializer(data=request.data)
         if serializer.is_valid():
-            project = serializer.save()
+            # Assign user if authenticated
+            user = request.user if request.user.is_authenticated else None
+            project = serializer.save(user=user)
             return Response(project.to_dict(), status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -396,10 +424,15 @@ class ProjectDetailView(APIView):
     def get(self, request, project_id, format=None):
         """
         Get a project with its sections and groups.
+        If user is authenticated, verifies ownership.
         
         Returns the project with all its sections and groups.
         """
-        project = get_object_or_404(Project, id=project_id)
+        # Verify ownership if authenticated
+        if request.user.is_authenticated:
+            project = get_object_or_404(Project, id=project_id, user=request.user)
+        else:
+            project = get_object_or_404(Project, id=project_id)
         return Response(project.to_dict())
     
     def put(self, request, project_id, format=None):
@@ -414,7 +447,12 @@ class ProjectDetailView(APIView):
         
         Returns the updated project.
         """
-        project = get_object_or_404(Project, id=project_id)
+        # Verify ownership if authenticated
+        if request.user.is_authenticated:
+            project = get_object_or_404(Project, id=project_id, user=request.user)
+        else:
+            project = get_object_or_404(Project, id=project_id)
+        
         serializer = ProjectSerializer(project, data=request.data)
         if serializer.is_valid():
             project = serializer.save()
@@ -427,7 +465,12 @@ class ProjectDetailView(APIView):
         
         Deletes the project and all its sections and groups.
         """
-        project = get_object_or_404(Project, id=project_id)
+        # Verify ownership if authenticated
+        if request.user.is_authenticated:
+            project = get_object_or_404(Project, id=project_id, user=request.user)
+        else:
+            project = get_object_or_404(Project, id=project_id)
+        
         project.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -450,7 +493,9 @@ class SectionCreateView(APIView):
         """
         serializer = SectionSerializer(data=request.data)
         if serializer.is_valid():
-            section = serializer.save()
+            # Assign user if authenticated
+            user = request.user if request.user.is_authenticated else None
+            section = serializer.save(user=user)
             return Response(section.to_dict(), status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -517,6 +562,9 @@ class GroupCreateView(APIView):
         serializer = GroupSerializer(data=request.data)
         if serializer.is_valid():
             try:
+                # Get user if authenticated
+                user = request.user if request.user.is_authenticated else None
+                
                 # Get the ID from the request data or generate a new one
                 group_id = request.data.get('id') or uuid.uuid4()
                 
@@ -530,14 +578,14 @@ class GroupCreateView(APIView):
                         print(f"Invalid UUID format: {group_id}, generating new UUID")
                         group_id = uuid.uuid4()
                 
-                # Create the group with the specified ID
-                group = serializer.save(id=group_id)
+                # Create the group with the specified ID and user
+                group = serializer.save(id=group_id, user=user)
                 print(f"Group created with ID: {group.id}, Name: {group.name}")
                 return Response(group.to_dict(), status=status.HTTP_201_CREATED)
             except Exception as e:
                 print(f"Error creating group: {e}")
                 # If there was an error with the custom ID, fall back to default behavior
-                group = serializer.save()
+                group = serializer.save(user=user)
                 print(f"Group created with generated ID: {group.id}")
                 return Response(group.to_dict(), status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
