@@ -1,6 +1,73 @@
 # Progress: AI Academic Research Assistant Backend
 
-## Current Status (2025-11-11)
+## Current Status (2025-11-16)
+
+**NEW FEATURE**: Complete JWT-based authentication system with OAuth2 support and user-specific data isolation implemented.
+
+### Authentication System Implementation
+- ✅ **auth_api**: New Django app for authentication
+  - UserProfile model (extends Django User)
+  - UserSession model (JWT token tracking)
+  - LoginAttempt model (rate limiting)
+  - JWT token generation and validation
+  - Email/password registration and login
+  - Social authentication endpoint (Google/Microsoft)
+  - Token refresh and password change
+  - Logout with session invalidation
+
+### Security Features
+- ✅ **JWT Authentication**: Custom DRF authentication class
+  - 30-day access tokens, 31-day refresh tokens
+  - HS256 algorithm with SECRET_KEY signing
+  - Session-based token revocation
+  
+- ✅ **Rate Limiting**: Login attempt protection
+  - Max 5 failed attempts per 15 minutes
+  - Per email and IP address tracking
+  - Automatic lockout with clear error messages
+
+- ✅ **Security Middleware**: Three-layer protection
+  - SecurityHeadersMiddleware (XSS, clickjacking, MIME-sniff)
+  - IPBlocklistMiddleware (configurable IP blocking)
+  - RateLimitMiddleware (100 req/min per IP global limit)
+
+### User Data Isolation
+- ✅ **Core Models Updated**: Added user ForeignKey
+  - ResearchSession → User (null=True, backward compatible)
+  - Project → User
+  - Section → User
+  - Group → User (related_name='note_groups' to avoid conflict)
+
+- ✅ **View Filtering**: User-specific queries
+  - SavedNotesView filters by paper__session__user
+  - ProjectListCreateView filters by user
+  - All detail views verify ownership
+  - Anonymous users supported (null user)
+
+### Database
+- ✅ **Migrations Applied**
+  - auth_api initial migration
+  - Core models user ForeignKey additions
+  - Indexes added on user fields for performance
+  
+- ✅ **Database Reset Tool**: clear_database.py
+  - Safe reset for Neon PostgreSQL
+  - Handles foreign key constraints
+  - Confirmation prompt for safety
+
+### API Endpoints
+- ✅ `/api/auth/register/` - User registration
+- ✅ `/api/auth/login/` - Email/password login
+- ✅ `/api/auth/logout/` - Session invalidation
+- ✅ `/api/auth/social/auth/` - OAuth2 authentication
+- ✅ `/api/auth/token/refresh/` - Token refresh
+- ✅ `/api/auth/profile/` - User profile + stats
+- ✅ `/api/auth/password/change/` - Password update
+- ✅ `/api/auth/csrf/` - CSRF token for frontend
+
+---
+
+## Previous Status (2025-11-11)
 
 **NEW FEATURES**: URL-only mode and enhanced URL validation implemented to improve the user experience and reliability when working with direct PDF links.
 
