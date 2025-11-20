@@ -60,9 +60,9 @@ def generate_structured_search_terms(llm: LLM, topics: List[str], queries: List[
             \n
             RESPONSE FORMAT:
             Return a JSON object with these keys:
-            1. "exact_phrases": 2-3 exact phrases that START WITH domain keywords (5-6 words max)
+            1. "exact_phrases": 2-3 exact phrases that START WITH domain keywords (2-3 words max)
             2. "title_terms": 2-3 title search terms that START WITH domain keywords (3-5 words max)
-            3. "abstract_terms": 2-3 abstract search terms that START WITH domain keywords (3-5 words max)
+            3. "abstract_terms": 2-3 abstract search terms 1 word single-keywords most relevant to the subject (1-2 words max, single concepts only)
             4. "general_terms": 1-2 general search terms that START WITH domain keywords (2-4 words max)
             \n\n
             EXAMPLES OF PROPERLY STRUCTURED SEARCH TERMS:
@@ -75,7 +75,7 @@ def generate_structured_search_terms(llm: LLM, topics: List[str], queries: List[
             {
             "exact_phrases": ["sports psychology mental resilience techniques", "elite athletes performance under pressure", "sports psychology performance pressure techniques"],
             "title_terms": ["elite athletes mental resilience", "sports psychology pressure performance", "athlete psychology resilience techniques"],
-            "abstract_terms": ["sports performance pressure techniques", "elite athletes mental training", "athletic psychology resilience methods"],
+            "abstract_terms": ["performance", "resilience", "training"],
             "general_terms": ["sports psychology resilience", "elite athletes performance"]
             }
 
@@ -95,7 +95,7 @@ def generate_structured_search_terms(llm: LLM, topics: List[str], queries: List[
             {
             "exact_phrases": ["existentialist philosophy sartre bad faith", "existentialism bad faith modern society", "philosophy sartre concept modern application"],
             "title_terms": ["existentialist bad faith concept", "philosophy sartre modern society", "existentialism sartre authenticity analysis"],
-            "abstract_terms": ["existentialist bad faith implications", "philosophy sartre modern application", "existentialism authenticity contemporary relevance"],
+            "abstract_terms": ["authenticity", "consciousness", "freedom"],
             "general_terms": ["existentialist bad faith", "philosophy sartre modern"]
             }
 
@@ -115,7 +115,7 @@ def generate_structured_search_terms(llm: LLM, topics: List[str], queries: List[
             {
             "exact_phrases": ["medieval warfare siege tactics crusades", "medieval european crusades siege evolution", "medieval warfare crusades military developments"],
             "title_terms": ["medieval siege tactics evolution", "crusades warfare technological developments", "medieval military siege strategy"],
-            "abstract_terms": ["medieval crusades siege engines", "european warfare crusades fortifications", "medieval siege warfare evolution"],
+            "abstract_terms": ["medieval crusades", "siege engines", "european warfare"],
             "general_terms": ["medieval crusades siege", "european warfare crusades"]
             }
 
@@ -135,7 +135,7 @@ def generate_structured_search_terms(llm: LLM, topics: List[str], queries: List[
             {
             "exact_phrases": ["urban sociology gentrification community impact", "sociology gentrification community cohesion effects", "urban community gentrification social changes"],
             "title_terms": ["urban gentrification community cohesion", "sociology neighborhood displacement effects", "urban community social fragmentation"],
-            "abstract_terms": ["urban gentrification social consequences", "sociology community displacement research", "urban neighborhood transformation studies"],
+            "abstract_terms": ["urban", "gentrification", "community"],
             "general_terms": ["urban gentrification effects", "sociology community displacement"]
             }
 
@@ -195,7 +195,7 @@ def generate_structured_search_terms(llm: LLM, topics: List[str], queries: List[
             {
             "exact_phrases": ["shakespearean tragedy hamlet psychological interpretations", "drama hamlet psychological complexity modern", "shakespearean hamlet psychology contemporary analysis"],
             "title_terms": ["shakespearean hamlet psychological readings", "drama tragedy modern interpretations", "shakespearean character psychology analysis"],
-            "abstract_terms": ["shakespearean hamlet contemporary psychology", "drama tragedy psychological complexity", "shakespearean character modern interpretations"],
+            "abstract_terms": ["hamlet, "drama ", "contemporary""],
             "general_terms": ["shakespearean hamlet psychology", "drama tragedy interpretations"]
             }
 
@@ -215,7 +215,7 @@ def generate_structured_search_terms(llm: LLM, topics: List[str], queries: List[
             {
             "exact_phrases": ["structural engineering composite materials earthquake", "engineering earthquake-resistant composite applications", "structural composite materials building performance"],
             "title_terms": ["structural composite earthquake resistance", "engineering advanced materials buildings", "structural seismic composite development"],
-            "abstract_terms": ["structural earthquake composite innovations", "engineering building materials performance", "structural seismic design materials"],
+            "abstract_terms": ["earthquake", "engineering", "seismic design"],
             "general_terms": ["structural composite materials", "engineering earthquake resistance"]
             }
 
@@ -336,79 +336,14 @@ def generate_structured_search_terms(llm: LLM, topics: List[str], queries: List[
         }
 
 
-# def build_arxiv_queries(structured_terms: Dict) -> List[str]:
-#     """Build optimized arXiv queries from structured search terms."""
-#     debug_print("Building arXiv queries from structured terms")
-#     queries = []
-    
-#     # Add exact phrase searches in all fields (highest priority)
-#     for phrase in structured_terms.get("exact_phrases", []):
-#         if phrase.strip():
-#             queries.append(f'all:"{phrase}"')
-    
-#     # Add title-specific searches (high priority)
-#     title_terms = [term for term in structured_terms.get("title_terms", []) if term.strip()]
-#     if len(title_terms) > 1:
-#         # Combine multiple title terms with OR for broader matching
-#         title_query = " OR ".join([f'ti:"{term}"' for term in title_terms])
-#         queries.append(f"({title_query})")
-#     elif len(title_terms) == 1:
-#         queries.append(f'ti:"{title_terms[0]}"')
-    
-#     # Add abstract-specific searches (medium priority)
-#     abstract_terms = [term for term in structured_terms.get("abstract_terms", []) if term.strip()]
-#     if len(abstract_terms) > 1:
-#         # Combine abstract terms with OR for broader matching
-#         abstract_query = " OR ".join([f'abs:"{term}"' for term in abstract_terms])
-#         queries.append(f"({abstract_query})")
-#     elif len(abstract_terms) == 1:
-#         queries.append(f'abs:"{abstract_terms[0]}"')
-    
-#     # Create combinations of terms for more specific searches
-#     if title_terms and abstract_terms:
-#         # Create combined queries with one title term AND one abstract term
-#         for title_term in title_terms[:2]:  # Limit to first 2 title terms
-#             for abstract_term in abstract_terms[:2]:  # Limit to first 2 abstract terms
-#                 combined_query = f'(ti:"{title_term}" AND abs:"{abstract_term}")'
-#                 queries.append(combined_query)
-    
-#     # Add general terms with logical OR between them (lowest priority but broader coverage)
-#     general_terms = [term for term in structured_terms.get("general_terms", []) if term.strip()]
-#     if len(general_terms) >= 3:
-#         # Create subgroups of terms to avoid too broad queries
-#         for i in range(0, len(general_terms), 2):
-#             subgroup = general_terms[i:i+2]
-#             if subgroup:
-#                 general_query = " OR ".join([f'all:"{term}"' for term in subgroup])
-#                 queries.append(f"({general_query})")
-#     elif general_terms:
-#         general_query = " OR ".join([f'all:"{term}"' for term in general_terms])
-#         queries.append(f"({general_query})")
-    
-#     # If no valid queries were generated, create a fallback query
-#     if not queries:
-#         all_terms = []
-#         all_terms.extend(structured_terms.get("exact_phrases", []))
-#         all_terms.extend(structured_terms.get("title_terms", []))
-#         all_terms.extend(structured_terms.get("abstract_terms", []))
-#         all_terms.extend(structured_terms.get("general_terms", []))
-        
-#         if all_terms:
-#             fallback_term = all_terms[0]
-#             queries.append(f'all:"{fallback_term}"')
-    
-#     debug_print(f"Built {len(queries)} arXiv queries: {queries}")
-#     return queries
 
-
-
-def search_arxiv_with_structured_queries(search_structure: Dict, max_results=60, original_topics=None, original_queries=None) -> List[str]:
+def search_arxiv_with_structured_queries(search_structure: Dict, max_results=400, original_topics=None, original_queries=None) -> List[str]:
     """
     Enhanced arXiv search using structured queries with result limiting and rate limiting.
     
     Args:
         search_structure: Dictionary of structured search terms
-        max_results: Maximum number of results to return (default: 60)
+        max_results: Maximum number of results to return (default: 400)
         original_topics: Optional list of original user topics to include directly in search
         original_queries: Optional list of original user queries to include directly in search
         
@@ -438,9 +373,9 @@ def search_arxiv_with_structured_queries(search_structure: Dict, max_results=60,
     # Calculate results per query to distribute fairly
     if max_results and len(queries) > 0:
         # Add 1 to ensure we get enough results even with duplicates
-        results_per_query = min(10, (max_results // len(queries)) + 1)
+        results_per_query = min(20, (max_results // len(queries)) + 1)
     else:
-        results_per_query = 10
+        results_per_query = 20
     
     debug_print(f"Fetching up to {results_per_query} results per query to reach target of {max_results}")
     
@@ -658,10 +593,11 @@ def build_arxiv_queries(structured_terms: Dict) -> List[str]:
         if term.strip():
             queries.append(f'ti:{term}')
     
-    # Add abstract-specific searches
-    for term in structured_terms.get("abstract_terms", []):
-        if term.strip():
-            queries.append(f'abs:{term}')
+    # Add abstract-specific searches as combined AND query
+    abstract_terms = [term for term in structured_terms.get("abstract_terms", []) if term.strip()]
+    if abstract_terms:
+        abstract_query = " AND ".join([f"abs:{term}" for term in abstract_terms])
+        queries.append(f"({abstract_query})")
     
     # Add general terms with logical OR between them
     general_terms = [term for term in structured_terms.get("general_terms", []) if term.strip()]
