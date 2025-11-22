@@ -10,6 +10,7 @@ import time
 import urllib.parse
 import requests
 import re
+import arxiv as arxiv_pkg
 from typing import List, Dict, Any
 from .llm_service import LLM
 
@@ -23,6 +24,16 @@ def debug_print(message):
     """Print debug information if DEBUG_PRINT is enabled."""
     if DEBUG_PRINT:
         print(f"[SEARCH] {message}")
+
+def clean_abstract(abstract: str) -> str:
+    """Clean and format abstract text (from Method 2)."""
+    if not abstract:
+        return ""
+    # Remove newlines and excessive spaces
+    abstract = re.sub(r'\s+', ' ', abstract)
+    # Remove any LaTeX-style commands
+    abstract = re.sub(r'\\[a-zA-Z]+(\{.*?\})?', '', abstract)
+    return abstract.strip()
 
 
 
@@ -337,9 +348,10 @@ def generate_structured_search_terms(llm: LLM, topics: List[str], queries: List[
 
 
 
-def search_arxiv_with_structured_queries(search_structure: Dict, max_results=400, original_topics=None, original_queries=None) -> List[str]:
+def search_arxiv_with_structured_queries(search_structure: Dict, max_results=400, original_topics=None, original_queries=None) -> Dict[str, Any]:
     """
     Enhanced arXiv search using structured queries with result limiting and rate limiting.
+    Now returns both URLs and metadata to eliminate duplicate API calls.
     
     Args:
         search_structure: Dictionary of structured search terms
@@ -348,7 +360,9 @@ def search_arxiv_with_structured_queries(search_structure: Dict, max_results=400
         original_queries: Optional list of original user queries to include directly in search
         
     Returns:
-        List of arXiv PDF URLs (limited to max_results)
+        Dict containing:
+        - 'urls': List of arXiv PDF URLs (limited to max_results)
+        - 'metadata': Dict mapping URLs to metadata (id, title, abstract, authors, date)
     """
     # Build queries from the structured terms
     queries = build_arxiv_queries(search_structure)
@@ -369,13 +383,14 @@ def search_arxiv_with_structured_queries(search_structure: Dict, max_results=400
     debug_print(f"Searching arXiv with {len(queries)} structured queries (including original topics/queries)")
     
     all_results = []
+    all_metadata = {}  # Dict mapping PDF URLs to metadata
     
     # Calculate results per query to distribute fairly
     if max_results and len(queries) > 0:
         # Add 1 to ensure we get enough results even with duplicates
-        results_per_query = min(20, (max_results // len(queries)) + 1)
+        results_per_query = min(30, (max_results // len(queries)) + 1)
     else:
-        results_per_query = 20
+        results_per_query = 30
     
     debug_print(f"Fetching up to {results_per_query} results per query to reach target of {max_results}")
     
@@ -388,65 +403,53 @@ def search_arxiv_with_structured_queries(search_structure: Dict, max_results=400
         
         # Add delay between queries to respect arXiv rate limits
         if i > 0:  # Don't delay the first request
-            debug_print(f"Waiting 2 seconds before next arXiv query to respect rate limits...")
-            time.sleep(2)
+            debug_print(f"Waiting 1.2 seconds before next arXiv query to respect rate limits...")
+            time.sleep(1.2)
 
         try:
-            # Create arXiv API request
-            BASE_URL = "http://export.arxiv.org/api/query"
-            url = f"{BASE_URL}?search_query={urllib.parse.quote(query)}&start=0&max_results={results_per_query}&sortBy=relevance"
             
             debug_print(f"Querying arXiv with: {query}")
             
-            # Use same User-Agent as in pdf_service.py for consistency 
-            headers = {
-                'User-Agent': 'ResearchAssistantBot/1.0 (Educational Research Tool; mailto:research@example.com)',
-                'Accept': 'application/xml'
-            }
+            # Create arxiv search using the package for better performance
+            search = arxiv_pkg.Search(
+                query=query,
+                max_results=results_per_query,
+                sort_by=arxiv_pkg.SortCriterion.Relevance,
+                sort_order=arxiv_pkg.SortOrder.Descending
+            )
             
-            response = requests.get(url, headers=headers, timeout=30)
-            response.raise_for_status()
-            
-            # Extract results
-            try:
-                import xml.etree.ElementTree as ET
-                root = ET.fromstring(response.text)
-                NAMESPACE = {'atom': 'http://www.w3.org/2005/Atom'}
-                
-                query_results = []
-                for entry in root.findall('.//atom:entry', NAMESPACE):
-                    id_elem = entry.find('.//atom:id', NAMESPACE)
-                    if id_elem is not None and id_elem.text:
-                        id_text = id_elem.text.strip()
-                        arxiv_id = id_text.split('/')[-1]
-                        # Remove .pdf extension - arXiv handles URLs correctly without it
-                        pdf_url = f"https://arxiv.org/pdf/{arxiv_id}"
-                        query_results.append(pdf_url)
-                
-                debug_print(f"Found {len(query_results)} results for query: {query}")
-                all_results.extend(query_results)
-                
-                # Respect result limit during query processing
-                if max_results and len(all_results) >= max_results:
-                    debug_print(f"Reached target of {max_results} results, stopping search")
-                    break
-                    
-            except Exception as parse_error:
-                debug_print(f"Error parsing XML: {str(parse_error)}")
-                logger.error(f"Error parsing XML response: {parse_error}")
-                
-                # Fallback to regex
-                id_pattern = r'<id>http://arxiv\.org/abs/([^<]+)</id>'
-                arxiv_ids = re.findall(id_pattern, response.text)
-                
-                query_results = []
-                for arxiv_id in arxiv_ids[:results_per_query]:
-                    # Remove .pdf extension - arXiv handles URLs correctly without it
+            query_results = []
+            for result in search.results():
+                try:
+                    # Extract arXiv ID and create PDF URL
+                    arxiv_id = result.get_short_id()
                     pdf_url = f"https://arxiv.org/pdf/{arxiv_id}"
                     query_results.append(pdf_url)
-                
-                debug_print(f"Found {len(query_results)} results using fallback")
-                all_results.extend(query_results)
+                    
+                    # Collect metadata (Method 2 approach)
+                    paper_metadata = {
+                        'id': arxiv_id,
+                        'url': pdf_url,
+                        'title': result.title,
+                        'abstract': clean_abstract(result.summary),
+                        'authors': [author.name for author in result.authors],
+                        'date': result.published.strftime('%Y-%m-%d') if result.published else ""
+                    }
+                    all_metadata[pdf_url] = paper_metadata
+                    
+                    # Rate limiting for compatibility with existing system
+                    time.sleep(0.1)
+                    
+                except Exception as result_error:
+                    debug_print(f"Error processing individual result: {result_error}")
+            
+            debug_print(f"Found {len(query_results)} results for query: {query}")
+            all_results.extend(query_results)
+            
+            # Respect result limit during query processing
+            if max_results and len(all_results) >= max_results:
+                debug_print(f"Reached target of {max_results} results, stopping search")
+                break
                 
         except Exception as e:
             logger.error(f"Error with query '{query}': {e}")
@@ -463,10 +466,21 @@ def search_arxiv_with_structured_queries(search_structure: Dict, max_results=400
     # Apply final result limit
     if max_results and len(unique_results) > max_results:
         debug_print(f"Limiting {len(unique_results)} unique results to {max_results}")
-        return unique_results[:max_results]
+        limited_results = unique_results[:max_results]
+        # Filter metadata to match limited URLs
+        limited_metadata = {url: all_metadata[url] for url in limited_results if url in all_metadata}
+        return {
+            'urls': limited_results,
+            'metadata': limited_metadata
+        }
     
-    debug_print(f"Returning {len(unique_results)} unique results")
-    return unique_results
+    debug_print(f"Returning {len(unique_results)} unique results with metadata")
+    # Filter metadata to match unique URLs only
+    filtered_metadata = {url: all_metadata[url] for url in unique_results if url in all_metadata}
+    return {
+        'urls': unique_results,
+        'metadata': filtered_metadata
+    }
     
 # File: core/services/search_service.py
 def generate_search_questions(llm: LLM, topics: List[str], queries: List[str]) -> tuple:

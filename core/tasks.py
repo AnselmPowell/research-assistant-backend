@@ -277,12 +277,13 @@ def _process_research_session_thread(session_id: str, settings_data=None):
             direct_urls = session.direct_urls
             
             # Search ArXiv with structured queries for better results
-            arxiv_urls = []
-            arxiv_urls = search_arxiv_with_structured_queries(
+            arxiv_search_result = search_arxiv_with_structured_queries(
                 search_structure,
                 original_topics=session.topics,
                 original_queries=session.info_queries
             )
+            arxiv_urls = arxiv_search_result['urls']
+            arxiv_metadata = arxiv_search_result['metadata']
             print(f"Found {len(arxiv_urls)} papers from arXiv search using structured queries (including original topics/queries)")
             
             # Combine URLs, prioritizing direct URLs
@@ -306,7 +307,7 @@ def _process_research_session_thread(session_id: str, settings_data=None):
             logger.error(f"Error getting max_urls: {e}")
             max_urls = 30  # Default fallback
 
-        max_urls = 100
+        max_urls = 200
         print("max_urls, ", max_urls)
         print("len(all_candidate_urls), ", len(all_candidate_urls))
     
@@ -335,20 +336,22 @@ def _process_research_session_thread(session_id: str, settings_data=None):
         additional_search_terms = search_structure.get('title_terms', []) + search_structure.get('abstract_terms', [])
         # Pre-filter papers based on metadata before creating database objects
         try:
-            from .services.paper_filter_service import filter_paper_urls
+            from .services.paper_filter_service import filter_paper_urls_with_metadata
             
             # For URL-only mode, skip pre-filtering
             if is_url_only_search:
                 print(f"URL-only mode with {len(all_candidate_urls)} URLs - skipping pre-filtering")
                 relevant_urls = all_candidate_urls
             else:
-                # Regular pre-filtering for topic searches or many URLs
-                filter_result = filter_paper_urls(
+                # Regular pre-filtering for topic searches or many URLs with metadata
+                filter_result = filter_paper_urls_with_metadata(
                     all_candidate_urls, 
+                    arxiv_metadata,  # Pass existing metadata to eliminate duplicate API calls
                     session.topics,
                     expanded_questions,
                     explanation,
-                    additional_search_terms
+                    additional_search_terms,
+                    direct_urls  # Pass direct URLs for prioritization
                 )
                 
                 print(f"Pre-filtering results: {filter_result}")
@@ -397,7 +400,7 @@ def _process_research_session_thread(session_id: str, settings_data=None):
         
         # Get maximum number of workers from settings
         # Reduced to 1 to prevent arXiv rate limiting
-        max_workers = 1  # Changed from getattr(settings, 'MAX_WORKERS', 6)
+        max_workers = 4  # Changed from getattr(settings, 'MAX_WORKERS', 6)
         print(f"Using {max_workers} workers for parallel paper processing")
         
         # Process papers with the thread pool

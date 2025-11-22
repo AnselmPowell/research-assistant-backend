@@ -1,5 +1,5 @@
 """
-Embedding service for generating embeddings using OpenAI's API.
+Embedding service for generating embeddings using Google Gemini and OpenAI APIs.
 """
 
 import logging
@@ -8,6 +8,14 @@ import numpy as np
 from openai import OpenAI
 from django.conf import settings
 from typing import List, Dict, Any
+
+# Google Gemini embeddings imports
+try:
+    from langchain_google_genai import GoogleGenerativeAIEmbeddings
+    from sklearn.metrics.pairwise import cosine_similarity
+    GOOGLE_EMBEDDINGS_AVAILABLE = True
+except ImportError:
+    GOOGLE_EMBEDDINGS_AVAILABLE = False
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -191,3 +199,147 @@ def validate_note_relevance(notes, expanded_questions, explanation, threshold=0.
     
     print(f"Validation complete: {len(validated_notes)} notes passed, {len(filtered_notes)} filtered")
     return validated_notes, filtered_notes
+
+# Google Gemini Embeddings Functions
+def setup_google_api_key():
+    """Setup Google API key from environment or settings."""
+    api_key = getattr(settings, 'GOOGLE_API_KEY', None) or os.environ.get("GOOGLE_API_KEY")
+    if not api_key:
+        # Use the provided API key as fallback
+        api_key = "AIzaSyAtcdeoPDwTKDsY6RiZzwCbfm7yEKVLAag"
+        os.environ["GOOGLE_API_KEY"] = api_key
+        debug_print("Using fallback Google API key")
+    else:
+        os.environ["GOOGLE_API_KEY"] = api_key
+        debug_print("Google API key configured from settings/environment")
+    return api_key
+
+def get_google_embeddings_batch(documents: List[Dict[str, str]], user_query: str) -> tuple:
+    """
+    Generate embeddings using Google Gemini for batch document and query processing.
+    
+    Args:
+        documents: List of dicts with 'content' and 'id' keys
+        user_query: Concatenated user queries string
+        
+    Returns:
+        Tuple of (doc_embeddings, query_embedding) or (None, None) on error
+    """
+    debug_print(f"Generating Google embeddings for {len(documents)} documents and 1 query")
+    
+    if not GOOGLE_EMBEDDINGS_AVAILABLE:
+        debug_print("Google embeddings not available - missing dependencies")
+        return None, None
+    
+    try:
+        # Setup API key
+        setup_google_api_key()
+        
+        # Initialize embedders with task-specific models
+        doc_embedder = GoogleGenerativeAIEmbeddings(
+            model="models/gemini-embedding-001", 
+            task_type="RETRIEVAL_DOCUMENT"
+        )
+        query_embedder = GoogleGenerativeAIEmbeddings(
+            model="models/gemini-embedding-001", 
+            task_type="RETRIEVAL_QUERY"
+        )
+        
+        # Extract document texts
+        doc_texts = [doc["content"] for doc in documents]
+        
+        # Batch embed all documents
+        debug_print("Generating document embeddings with Google Gemini")
+        doc_embeddings = doc_embedder.embed_documents(doc_texts)
+        
+        # Embed user query
+        debug_print("Generating query embedding with Google Gemini")
+        query_embedding = query_embedder.embed_query(user_query)
+        
+        debug_print("Successfully generated Google Gemini embeddings")
+        return doc_embeddings, query_embedding
+        
+    except Exception as e:
+        logger.error(f"Error generating Google embeddings: {e}")
+        debug_print(f"ERROR generating Google embeddings: {str(e)}")
+        return None, None
+
+def calculate_cosine_similarities(query_embedding: List[float], doc_embeddings: List[List[float]]) -> List[float]:
+    """
+    Calculate cosine similarities between query and documents using sklearn.
+    
+    Args:
+        query_embedding: Single query embedding vector
+        doc_embeddings: List of document embedding vectors
+        
+    Returns:
+        List of similarity scores (0.0 to 1.0)
+    """
+    debug_print(f"Calculating cosine similarities for {len(doc_embeddings)} documents")
+    
+    try:
+        # Use sklearn for efficient cosine similarity computation
+        similarities = cosine_similarity([query_embedding], doc_embeddings)[0]
+        debug_print(f"Calculated {len(similarities)} similarity scores")
+        return similarities.tolist()
+        
+    except Exception as e:
+        logger.error(f"Error calculating cosine similarities: {e}")
+        debug_print(f"ERROR calculating similarities: {str(e)}")
+        return [0.0] * len(doc_embeddings)
+
+def filter_papers_by_embedding_similarity(
+    documents: List[Dict[str, str]], 
+    user_query: str, 
+    threshold: float = 0.7
+) -> Dict[str, bool]:
+    """
+    Filter papers using Google Gemini embeddings and cosine similarity.
+    
+    Args:
+        documents: List of dicts with 'content' (title+abstract) and 'id' (URL) keys
+        user_query: Concatenated user queries string
+        threshold: Minimum cosine similarity threshold (default: 0.7)
+        
+    Returns:
+        Dictionary mapping document IDs (URLs) to relevance boolean
+    """
+    debug_print(f"Filtering {len(documents)} papers using Google embeddings with threshold {threshold}")
+    
+    if not documents:
+        debug_print("No documents to filter")
+        return {}
+    
+    try:
+        # Generate embeddings
+        doc_embeddings, query_embedding = get_google_embeddings_batch(documents, user_query)
+        
+        if doc_embeddings is None or query_embedding is None:
+            debug_print("Failed to generate embeddings - falling back to accepting all papers")
+            # Return all as relevant if embeddings fail
+            return {doc["id"]: True for doc in documents}
+        
+        # Calculate similarities
+        similarities = calculate_cosine_similarities(query_embedding, doc_embeddings)
+        
+        # Apply threshold and create relevance map
+        relevance_map = {}
+        relevant_count = 0
+        
+        for doc, similarity in zip(documents, similarities):
+            is_relevant = similarity >= threshold
+            relevance_map[doc["id"]] = is_relevant
+            
+            if is_relevant:
+                relevant_count += 1
+            
+            debug_print(f"Paper {doc['id']}: similarity {similarity:.3f} -> {'RELEVANT' if is_relevant else 'FILTERED'}")
+        
+        debug_print(f"Filtering complete: {relevant_count}/{len(documents)} papers above {threshold} threshold")
+        return relevance_map
+        
+    except Exception as e:
+        logger.error(f"Error in embedding-based filtering: {e}")
+        debug_print(f"ERROR in embedding filtering: {str(e)}")
+        # Return all as relevant on error to avoid breaking the pipeline
+        return {doc["id"]: True for doc in documents}
