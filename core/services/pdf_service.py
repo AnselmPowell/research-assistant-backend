@@ -16,7 +16,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 from django.conf import settings
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
-from .embedding_service import get_embedding, validate_note_relevance, calculate_similarity
+from .embedding_service import get_embedding, validate_note_relevance, calculate_similarity, get_google_embeddings_batch, calculate_cosine_similarities
 from .llm_service import LLM
 
 # Configure logging
@@ -45,7 +45,7 @@ def download_pdf(url: str) -> str:
     
     # Add delay to respect arXiv rate limits (1 request per 3 seconds)
     # Increased to 2 seconds due to parallel workers
-    time.sleep(2)
+    time.sleep(1)
     
     try:
         headers = {
@@ -297,10 +297,11 @@ def extract_information_from_text(text: str, search_terms:List[str], queries: Li
         """
     
     page_text = f""" 
-    Below is the text from an academic paper you must extract only information from it that the user is explictly look for, nothing else. IF there is zero information to extact that is fine, it has to match exactly what the user is looking for.  ####\n\n
+    Below is the text from an academic paper you must extract only information from it that the user is explictly look for, nothing else. IF there is zero information to extact that is fine DONT BE AFRAID TO RETURN NOTHING, it has to match exactly what the user is looking for.  ####\n\n
     {text}
-    \n###\n\n
-
+    \n#####\n\n
+    
+    Above is the text from an academic paper you must extract only information from it that the user is explictly look for, nothing else. IF there is zero information to extact that is fine DONT BE AFRAID TO RETURN NOTHING, it has to match exactly what the user is looking for. ###\n\n
      """
     
     
@@ -502,7 +503,6 @@ def process_pdf(pdf_url: str, search_terms: List[str], query_embedding: List[flo
                 'notes': []
             }
         
-        metadata = get_metadata(doc)
         page_count = len(doc)
         debug_print(f"PDF has {page_count} pages")
         
@@ -550,20 +550,24 @@ def process_pdf(pdf_url: str, search_terms: List[str], query_embedding: List[flo
             debug_print(f"Extracted {len(notes)} notes using Simple Path")
             
         else:
-            # ADVANCED PATH for larger documents
-            debug_print(f"Using Advanced Path for document with {page_count} pages")
+            # ADVANCED PATH for larger documents using Google embeddings batch processing
+            debug_print(f"Using Advanced Path with Google embeddings for document with {page_count} pages")
             
             # Calculate relevance threshold
             relevance_threshold = settings.RELEVANCE_THRESHOLD if hasattr(settings, 'RELEVANCE_THRESHOLD') else 0.20
             debug_print(f"Using relevance threshold: {relevance_threshold}")
             
-            # Find relevant "hot" pages using embeddings - with batching for efficiency
+            # Prepare all pages for batch embedding processing
             relevant_pages = []
-            batch_size = 5  # Process 5 pages at a time for memory efficiency
+            
+            # Optimal batch size for memory efficiency - process 20 pages at a time
+            # This balances API efficiency with memory usage
+            batch_size = 20
+            debug_print(f"Processing {page_count} pages in batches of {batch_size} using Google embeddings")
             
             for batch_start in range(0, page_count, batch_size):
                 batch_end = min(batch_start + batch_size, page_count)
-                debug_print(f"Processing page batch {batch_start+1}-{batch_end}/{page_count}")
+                debug_print(f"Processing page batch {batch_start+1}-{batch_end}/{page_count} with Google embeddings")
                 
                 # Check for timeout
                 if time.time() - start_time > max_processing_time:
@@ -584,27 +588,69 @@ def process_pdf(pdf_url: str, search_terms: List[str], query_embedding: List[flo
                         'total_pages': enhanced_metadata['total_pages'],
                         'notes': []
                     }
-                # Process pages in this batch
+                
+                # Prepare documents for batch processing
+                batch_documents = []
+                page_indices = []
+                
                 for i in range(batch_start, batch_end):
                     page_text = doc[i].get_text()
-                    if not page_text.strip():
+                    if page_text.strip():  # Only process non-empty pages
+                        batch_documents.append({
+                            'content': page_text.strip(),
+                            'id': f"page_{i+1}"
+                        })
+                        page_indices.append(i)
+                    else:
                         debug_print(f"Page {i+1} is empty, skipping")
-                        continue
-                    
-                    # Generate embedding
-                    page_embedding = get_embedding(page_text)
-                    similarity = calculate_similarity(page_embedding, query_embedding)
-                    debug_print(f"Page {i+1} has similarity score: {similarity:.4f}")
-                    
-                    if similarity > relevance_threshold:
-                        debug_print(f"Page {i+1} is relevant (score: {similarity:.4f})")
-                        relevant_pages.append(i)
                 
-                # Memory management - explicitly clear large variables
-                page_text = None
-                page_embedding = None
+                if not batch_documents:
+                    debug_print(f"No valid pages in batch {batch_start+1}-{batch_end}")
+                    continue
+                
+                # Prepare query from original queries and search terms
+                query_parts = original_queries + search_terms
+                user_query = " ".join(query_parts)
+                
+                # Use Google embeddings for batch processing (much faster than individual calls)
+                debug_print(f"Generating Google embeddings for {len(batch_documents)} pages in batch")
+                doc_embeddings, query_embedding = get_google_embeddings_batch(batch_documents, user_query)
+                
+                if doc_embeddings is None or query_embedding is None:
+                    debug_print("Google embeddings failed, falling back to OpenAI for this batch")
+                    # Fallback to original method for this batch
+                    for i, doc_idx in enumerate(page_indices):
+                        page_text = batch_documents[i]['content']
+                        page_embedding = get_embedding(page_text)
+                        similarity = calculate_similarity(page_embedding, query_embedding)
+                        debug_print(f"Page {doc_idx+1} has similarity score: {similarity:.4f} (OpenAI fallback)")
+                        
+                        if similarity > relevance_threshold:
+                            debug_print(f"Page {doc_idx+1} is relevant (score: {similarity:.4f})")
+                            relevant_pages.append(doc_idx)
+                else:
+                    # Calculate all similarities at once (vectorized - very fast)
+                    debug_print(f"Calculating cosine similarities for {len(doc_embeddings)} pages")
+                    similarities = calculate_cosine_similarities(query_embedding, doc_embeddings)
+                    
+                    # Process similarity results
+                    for i, similarity in enumerate(similarities):
+                        doc_idx = page_indices[i]
+                        debug_print(f"Page {doc_idx+1} has similarity score: {similarity:.4f} (Google embeddings)")
+                        
+                        if similarity > relevance_threshold:
+                            debug_print(f"Page {doc_idx+1} is relevant (score: {similarity:.4f})")
+                            relevant_pages.append(doc_idx)
+                
+                # Memory management - clear large variables immediately
+                batch_documents = None
+                doc_embeddings = None
+                query_embedding = None
+                similarities = None
+                
+                debug_print(f"Completed batch {batch_start+1}-{batch_end}, found {len([p for p in relevant_pages if batch_start <= p < batch_end])} relevant pages")
             
-            debug_print(f"Found {len(relevant_pages)} relevant pages: {relevant_pages}")
+            debug_print(f"Found {len(relevant_pages)} relevant pages total: {relevant_pages}")
             
             if not relevant_pages:
                 debug_print("No relevant pages found")
@@ -625,7 +671,7 @@ def process_pdf(pdf_url: str, search_terms: List[str], query_embedding: List[flo
                     'notes': []
                 }
             
-            # Group relevant pages into logical chunks
+            # Group relevant pages into logical chunks for content extraction
             chunks = create_chunks(relevant_pages)
             
             # Process each chunk

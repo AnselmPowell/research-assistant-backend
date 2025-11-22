@@ -2,6 +2,7 @@
 
 from django.conf import settings
 from django.http import HttpResponseForbidden
+from django.utils import timezone
 from datetime import datetime, timedelta
 
 
@@ -76,7 +77,7 @@ class RateLimitMiddleware:
 
     def __call__(self, request):
         ip = self.get_client_ip(request)
-        now = datetime.now()
+        now = timezone.now()
 
         # Clean up old entries periodically
         self.cleanup_old_entries(now)

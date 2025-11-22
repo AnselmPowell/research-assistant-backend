@@ -10,6 +10,7 @@ from django.middleware.csrf import get_token
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -93,7 +94,7 @@ class RegistrationView(APIView):
             refresh_token=refresh_token,
             device_info=request.META.get('HTTP_USER_AGENT'),
             ip_address=ip_address,
-            expires_at=timezone.now() + timezone.timedelta(days=7)
+            expires_at=timezone.now() + timedelta(days=7)
         )
         print("[RegistrationView] User session created")
         
@@ -229,7 +230,7 @@ class LoginView(APIView):
             refresh_token=refresh_token,
             device_info=request.META.get('HTTP_USER_AGENT'),
             ip_address=ip_address,
-            expires_at=timezone.now() + timezone.timedelta(days=7)
+            expires_at=timezone.now() + timedelta(days=7)
         )
         print("[LoginView] User session created")
         
@@ -339,7 +340,7 @@ class SocialAuthView(APIView):
                 refresh_token=refresh_token,
                 device_info=request.META.get('HTTP_USER_AGENT'),
                 ip_address=ip_address,
-                expires_at=timezone.now() + timezone.timedelta(days=7)
+                expires_at=timezone.now() + timedelta(days=7)
             )
             print(f"[SocialAuthView] Session created - IP: {ip_address}")
             

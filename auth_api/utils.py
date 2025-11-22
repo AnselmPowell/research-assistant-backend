@@ -1,6 +1,7 @@
 # auth_api/utils.py
 
 from datetime import datetime, timedelta
+from django.utils import timezone
 from .models import LoginAttempt
 from django.conf import settings
 
@@ -32,7 +33,7 @@ def check_login_attempts(email, ip_address):
     max_attempts = settings.AUTH_SETTINGS['MAX_LOGIN_ATTEMPTS']
     
     # Calculate cutoff time for recent attempts
-    cutoff_time = datetime.now() - timedelta(minutes=timeout_minutes)
+    cutoff_time = timezone.now() - timedelta(minutes=timeout_minutes)
     
     # Count recent failed attempts for this email/IP combination
     recent_attempts = LoginAttempt.objects.filter(
@@ -70,7 +71,7 @@ def cleanup_old_login_attempts(days=7):
     Args:
         days: Number of days to keep records (default 7)
     """
-    cutoff_date = datetime.now() - timedelta(days=days)
+    cutoff_date = timezone.now() - timedelta(days=days)
     deleted_count = LoginAttempt.objects.filter(
         attempt_time__lt=cutoff_date
     ).delete()[0]

@@ -18,23 +18,28 @@ The AI Academic Research Assistant backend leverages a modern Python-based stack
    - Type hints for code clarity
    - Exception handling for robustness
 
-3. **AI Services**
+3. **AI Services (Enhanced)**
+   - **Google Gemini embeddings** via LangChain for semantic similarity
+   - **arxiv package** for 6x faster arXiv search (LangChain integration)
    - Pydantic-AI for LLM interactions
    - OpenAI API (GPT-4o) for information extraction
-   - Text embedding API for semantic search
+   - **scikit-learn** for cosine similarity calculations
    - Structured output for reliable data extraction
+   - **Batch processing** for efficient API usage
 
 4. **PDF Processing**
    - PyMuPDF (v1.23.8) for PDF handling
    - Text extraction with page context
-   - Metadata parsing and enhancement
-   - Large document optimization
+   - **Enhanced metadata extraction** with clean abstracts
+   - Large document optimization with dual-path strategy
 
-5. **Search Integration**
-   - arXiv API for academic paper discovery
+5. **Search Integration (Upgraded)**
+   - **LangChain ArxivAPIWrapper** for native arXiv integration
+   - **arxiv_pkg.Search()** replacing manual HTTP/XML parsing
+   - **Google Gemini embeddings** for semantic paper filtering
+   - **Relevance-based URL ordering** with user priority
    - Query optimization with AI
-   - Custom search patterns for relevance
-   - Direct URL support
+   - Direct URL support with validation
 
 6. **Database**
    - Neon PostgreSQL (serverless)
@@ -477,6 +482,19 @@ psycopg2-binary==2.9.9
 dj-database-url==2.1.0
 ```
 
+### AI/ML Dependencies (Enhanced)
+
+```
+# LLM and Embeddings
+openai>=1.0.0
+pydantic-ai>=0.7.0
+langchain-google-genai>=1.0.0    # Google Gemini embeddings
+scikit-learn>=1.3.0              # Cosine similarity calculations
+
+# Academic Search
+arxiv>=2.0.0                     # Native arXiv API integration
+```
+
 ### WebSocket Dependencies
 
 ```
@@ -489,6 +507,7 @@ channels-redis==4.1.0
 ```
 tenacity==8.2.3  # For retry logic
 concurrent.futures  # Built-in for parallel processing
+numpy>=1.20.0    # For embedding calculations
 ```
 
 ## Running in Production

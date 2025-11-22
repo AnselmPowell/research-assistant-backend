@@ -4,6 +4,7 @@ import jwt as PyJWT
 from datetime import datetime
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.utils import timezone
 from rest_framework import authentication, exceptions
 from .models import UserSession
 
@@ -31,8 +32,8 @@ class TokenManager:
         access_payload = {
             'user_id': user_id,
             'type': 'access',
-            'exp': datetime.utcnow() + settings.JWT_SETTINGS['ACCESS_TOKEN_LIFETIME'],
-            'iat': datetime.utcnow()
+            'exp': timezone.now() + settings.JWT_SETTINGS['ACCESS_TOKEN_LIFETIME'],
+            'iat': timezone.now()
         }
         print(f"[TokenManager] Access token payload: user_id={user_id}, type=access")
         
@@ -47,8 +48,8 @@ class TokenManager:
         refresh_payload = {
             'user_id': user_id,
             'type': 'refresh',
-            'exp': datetime.utcnow() + settings.JWT_SETTINGS['REFRESH_TOKEN_LIFETIME'],
-            'iat': datetime.utcnow()
+            'exp': timezone.now() + settings.JWT_SETTINGS['REFRESH_TOKEN_LIFETIME'],
+            'iat': timezone.now()
         }
         print(f"[TokenManager] Refresh token payload: user_id={user_id}, type=refresh")
         
@@ -142,7 +143,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
                 user=user,
                 session_token=token,
                 is_active=True,
-                expires_at__gt=datetime.now()
+                expires_at__gt=timezone.now()
             ).first()
 
             if not session:

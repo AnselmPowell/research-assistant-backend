@@ -267,7 +267,7 @@ def get_google_embeddings_batch(documents: List[Dict[str, str]], user_query: str
             model="models/gemini-embedding-001", 
             task_type="RETRIEVAL_QUERY"
         )
-        )
+        
         
         # Extract document texts
         doc_texts = [doc["content"] for doc in documents]
