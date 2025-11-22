@@ -202,16 +202,36 @@ def validate_note_relevance(notes, expanded_questions, explanation, threshold=0.
 
 # Google Gemini Embeddings Functions
 def setup_google_api_key():
-    """Setup Google API key from environment or settings."""
-    api_key = getattr(settings, 'GOOGLE_API_KEY', None) or os.environ.get("GOOGLE_API_KEY")
+    """
+    Setup Google API key from environment variables or Django settings.
+    Priority: settings.GOOGLE_API_KEY > GOOGLE_API_KEY env var
+    """
+    api_key = None
+    
+    # Try Django settings first
+    try:
+        api_key = getattr(settings, 'GOOGLE_API_KEY', None)
+        if api_key:
+            debug_print("Found Google API key in Django settings")
+    except Exception as e:
+        debug_print(f"Could not access Django settings: {e}")
+    
+    # Try environment variable if not in settings
     if not api_key:
-        # Use the provided API key as fallback
-        api_key = "AIzaSyAtcdeoPDwTKDsY6RiZzwCbfm7yEKVLAag"
-        os.environ["GOOGLE_API_KEY"] = api_key
-        debug_print("Using fallback Google API key")
-    else:
-        os.environ["GOOGLE_API_KEY"] = api_key
-        debug_print("Google API key configured from settings/environment")
+        api_key = os.environ.get("GOOGLE_API_KEY")
+        if api_key:
+            debug_print("Found Google API key in environment variables")
+    
+    # Validation
+    if not api_key:
+        error_msg = "Google API key not found! Please set GOOGLE_API_KEY in your .env file"
+        logger.error(error_msg)
+        debug_print(f"ERROR: {error_msg}")
+        raise ValueError(error_msg)
+    
+    # Set in environment for LangChain Google GenAI
+    os.environ["GOOGLE_API_KEY"] = api_key
+    debug_print("Google API key configured successfully")
     return api_key
 
 def get_google_embeddings_batch(documents: List[Dict[str, str]], user_query: str) -> tuple:
@@ -232,8 +252,11 @@ def get_google_embeddings_batch(documents: List[Dict[str, str]], user_query: str
         return None, None
     
     try:
-        # Setup API key
-        setup_google_api_key()
+        # Setup and validate API key
+        api_key = setup_google_api_key()
+        if not api_key:
+            debug_print("Failed to setup Google API key")
+            return None, None
         
         # Initialize embedders with task-specific models
         doc_embedder = GoogleGenerativeAIEmbeddings(
@@ -243,6 +266,7 @@ def get_google_embeddings_batch(documents: List[Dict[str, str]], user_query: str
         query_embedder = GoogleGenerativeAIEmbeddings(
             model="models/gemini-embedding-001", 
             task_type="RETRIEVAL_QUERY"
+        )
         )
         
         # Extract document texts
@@ -343,3 +367,55 @@ def filter_papers_by_embedding_similarity(
         debug_print(f"ERROR in embedding filtering: {str(e)}")
         # Return all as relevant on error to avoid breaking the pipeline
         return {doc["id"]: True for doc in documents}
+
+def test_google_embeddings_setup():
+    """
+    Test function to verify Google embeddings are properly configured.
+    
+    Returns:
+        Dictionary with test results
+    """
+    debug_print("Testing Google embeddings setup...")
+    
+    test_result = {
+        'dependencies_available': GOOGLE_EMBEDDINGS_AVAILABLE,
+        'api_key_configured': False,
+        'embedding_test': False,
+        'error_message': None
+    }
+    
+    try:
+        # Check dependencies
+        if not GOOGLE_EMBEDDINGS_AVAILABLE:
+            test_result['error_message'] = "Missing dependencies: langchain-google-genai or scikit-learn"
+            return test_result
+        
+        # Check API key
+        try:
+            api_key = setup_google_api_key()
+            test_result['api_key_configured'] = bool(api_key)
+        except Exception as key_error:
+            test_result['error_message'] = f"API key setup failed: {str(key_error)}"
+            return test_result
+        
+        # Test basic embedding
+        try:
+            test_documents = [{"content": "Test document content", "id": "test"}]
+            test_query = "Test query"
+            
+            doc_embeddings, query_embedding = get_google_embeddings_batch(test_documents, test_query)
+            test_result['embedding_test'] = doc_embeddings is not None and query_embedding is not None
+            
+            if test_result['embedding_test']:
+                debug_print("Google embeddings test successful!")
+            else:
+                test_result['error_message'] = "Embedding generation failed"
+                
+        except Exception as embed_error:
+            test_result['error_message'] = f"Embedding test failed: {str(embed_error)}"
+    
+    except Exception as e:
+        test_result['error_message'] = f"Test failed: {str(e)}"
+    
+    debug_print(f"Google embeddings test result: {test_result}")
+    return test_result
