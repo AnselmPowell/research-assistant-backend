@@ -279,19 +279,6 @@ os.environ['DEFAULT_MODEL'] = 'openai:gpt-4o-mini'
 
 from datetime import timedelta
 
-# Authentication settings
-AUTH_SETTINGS = {
-    'TOKEN_LIFETIME': 60,  # Access token lifetime in minutes
-    'REFRESH_TOKEN_LIFETIME': 7,  # Refresh token lifetime in days
-    'PASSWORD_RESET_TIMEOUT': 24,  # Password reset timeout in hours
-    'MAX_LOGIN_ATTEMPTS': 5,  # Maximum failed login attempts before lockout
-    'LOGIN_ATTEMPT_TIMEOUT': 15  # Lockout duration in minutes
-}
-
-# JWT token settings
-JWT_SETTINGS = {
-    'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY,
     'VERIFYING_KEY': None,
     'ACCESS_TOKEN_LIFETIME': timedelta(days=30),  # Long-lived for development
     'REFRESH_TOKEN_LIFETIME': timedelta(days=31),
