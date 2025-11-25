@@ -50,196 +50,119 @@ def generate_structured_search_terms(llm: LLM, topics: List[str], queries: List[
             "general_terms": []
         }
     
-    # Create enhanced system prompt that enforces inclusion of original query terms
+    # Create enhanced system prompt optimized for arXiv's keyword-based search
     system_prompt = """
-            You are an academic search expert who specializes in arXiv's search syntax and generating search terms for students looking for relevant papers.
+You are an arXiv search expert who creates SHORT, TARGETED keywords that actually find relevant papers.
 
-            TASK:
-            Generate optimised search queries for arXiv based on the user's research needs. These search queries MUST position the most important domain keywords at the BEGINNING of each phrase to maximize relevance in arXiv's search algorithm. You  look carefully and understand the main research subject the user is mentioning make sure that those words are at the front of the search terms to get more relevant results from arXiv. For example "user topic: democratization civil society in Africa."  In this subject AFRICA is the main subject so in your search terms will move this to the BEGINNING to get more result related to the African economy.  
+CRITICAL RULES FOR ARXIV SUCCESS:
+1. arXiv search works BEST with 1-3 word phrases
+2. Use EXACT keywords that appear in academic paper titles
+3. Start with the MAIN SUBJECT/DOMAIN first
+4. Avoid connecting words (like "for", "in", "of", "the")
+5. Generate MORE terms (4-5 each) but keep them SHORT
 
-            WHY THIS IS CRITICAL:
-            arXiv's search algorithm gives higher weight to terms that appear at the beginning of search phrases. Placing domain keywords first dramatically improves search relevance by ensuring results stay focused on the user's specific field.
-            \n
-            STRICT RULES FOR ARXIV SEARCH OPTIMIZATION:
-            1. EVERY search term MUST start with the core domain keywords from the user's main topic
-            2. Keep the user's exact terminology whenever possible or close if possible.
-            3. Limit each search term to 5-6 words maximum for optimal arXiv search performance
-            4. Include at least one key term from the user's specific query in each search phrase
-            5. Never use generic terms that could apply to any fields - always maintain domain specificity
-            MAIN POINT: UNDERSTAND WHAT THE USER IS TRYING TO SAY AND SEARCH FOR, UNDERSTAND THERE INTENT AND PUT THOSE WORDS NEAR THE FRONT OF THE SEARCH TERMS 
-            IMPORTANT: You must first take time to understand the main research subject and key words and make sure that those words are at the front of the search terms.
-            \n
-            RESPONSE FORMAT:
-            Return a JSON object with these keys:
-            1. "exact_phrases": 2-3 exact phrases that START WITH domain keywords (2-3 words max)
-            2. "title_terms": 2-3 title search terms that START WITH domain keywords (3-5 words max)
-            3. "abstract_terms": 2-3 abstract search terms 1 word single-keywords most relevant to the subject (1-2 words max, single concepts only)
-            4. "general_terms": 1-2 general search terms that START WITH domain keywords (2-4 words max)
-            \n\n
-            EXAMPLES OF PROPERLY STRUCTURED SEARCH TERMS:
+RESPONSE FORMAT:
+{
+  "exact_phrases": [4-5 phrases, 2-3 words max],
+  "title_terms": [4-5 terms, 2-3 words max], 
+  "abstract_terms": [3-4 single keywords, 1 word only],
+  "general_terms": [3-4 terms, 2-3 words max]
+}
 
-            EXAMPLE 1 - SPORTS PSYCHOLOGY:
-            Topic: Sports psychology for elite athletes
-            Query: Mental resilience techniques for performance under pressure
+EXAMPLES OF WHAT WORKS IN ARXIV:
 
-            ✅ GOOD STRUCTURE:
-            {
-            "exact_phrases": ["sports psychology mental resilience techniques", "elite athletes performance under pressure", "sports psychology performance pressure techniques"],
-            "title_terms": ["elite athletes mental resilience", "sports psychology pressure performance", "athlete psychology resilience techniques"],
-            "abstract_terms": ["performance", "resilience", "training"],
-            "general_terms": ["sports psychology resilience", "elite athletes performance"]
-            }
+EXAMPLE 1 - SPORTS PSYCHOLOGY:
+Topic: "sports psychology"
+Query: "what is sports psychology"
 
-            ❌ BAD STRUCTURE:
-            {
-            "exact_phrases": ["mental resilience techniques for athletes", "performance under pressure training", "techniques for sports psychology"],
-            "title_terms": ["resilience in elite athletes", "pressure performance sports", "psychological techniques athletes"],
-            "abstract_terms": ["mental training for performance", "resilience techniques sports", "pressure handling methods athletes"],
-            "general_terms": ["performance psychology", "mental resilience sports"]
-            }
+✅ PERFECT FOR ARXIV:
+{
+  "exact_phrases": ["sports psychology", "athlete psychology", "performance psychology", "sport mental", "athletic psychology"],
+  "title_terms": ["sports psychology", "athlete performance", "mental training", "sport science", "athletic behavior"],
+  "abstract_terms": ["psychology", "performance", "training", "behavior"],
+  "general_terms": ["sports psychology", "athlete mental", "performance training", "sport behavior"]
+}
 
-            EXAMPLE 2 - PHILOSOPHY:
-            Topic: Existentialist philosophy
-            Query: Sartre's concept of bad faith in modern society
+❌ BAD FOR ARXIV (too long):
+{
+  "exact_phrases": ["sports psychology for elite athletes", "mental resilience in sports performance"]
+  ...
+}
 
-            ✅ GOOD STRUCTURE:
-            {
-            "exact_phrases": ["existentialist philosophy sartre bad faith", "existentialism bad faith modern society", "philosophy sartre concept modern application"],
-            "title_terms": ["existentialist bad faith concept", "philosophy sartre modern society", "existentialism sartre authenticity analysis"],
-            "abstract_terms": ["authenticity", "consciousness", "freedom"],
-            "general_terms": ["existentialist bad faith", "philosophy sartre modern"]
-            }
+EXAMPLE 2 - FINANCIAL MARKETS:
+Topic: "financial markets" 
+Query: "what is market volatility"
 
-            ❌ BAD STRUCTURE:
-            {
-            "exact_phrases": ["bad faith concept by sartre", "modern applications of existentialism", "analysis of sartre's philosophical concepts"],
-            "title_terms": ["concept of bad faith", "sartre's existentialist ideas", "philosophical analysis of authenticity"],
-            "abstract_terms": ["bad faith in contemporary society", "existential concepts in modernity", "philosophical implications of sartre"],
-            "general_terms": ["bad faith existentialism", "sartrean concepts"]
-            }
+✅ PERFECT FOR ARXIV:
+{
+  "exact_phrases": ["market volatility", "financial volatility", "price volatility", "volatility models", "market risk"],
+  "title_terms": ["market volatility", "financial markets", "price dynamics", "volatility forecasting", "market behavior"],
+  "abstract_terms": ["volatility", "markets", "finance", "risk"],
+  "general_terms": ["market volatility", "financial risk", "price movements", "market dynamics"]
+}
 
-            EXAMPLE 3 - HISTORY:
-            Topic: Medieval European warfare
-            Query: Evolution of siege tactics during the Crusades
+EXAMPLE 3 - URBAN PLANNING:
+Topic: "urban planning sustainability"
+Query: "green infrastructure benefits"
 
-            ✅ GOOD STRUCTURE:
-            {
-            "exact_phrases": ["medieval warfare siege tactics crusades", "medieval european crusades siege evolution", "medieval warfare crusades military developments"],
-            "title_terms": ["medieval siege tactics evolution", "crusades warfare technological developments", "medieval military siege strategy"],
-            "abstract_terms": ["medieval crusades", "siege engines", "european warfare"],
-            "general_terms": ["medieval crusades siege", "european warfare crusades"]
-            }
+✅ PERFECT FOR ARXIV:
+{
+  "exact_phrases": ["urban planning", "green infrastructure", "sustainable cities", "urban sustainability", "smart cities"],
+  "title_terms": ["urban planning", "green infrastructure", "sustainable development", "city planning", "urban design"],
+  "abstract_terms": ["planning", "sustainability", "infrastructure", "urban"],
+  "general_terms": ["urban sustainability", "green cities", "sustainable planning", "eco cities"]
+}
 
-            ❌ BAD STRUCTURE:
-            {
-            "exact_phrases": ["siege tactics used in crusades", "evolution of medieval military strategy", "developments in warfare during crusades"],
-            "title_terms": ["siege warfare evolution", "crusade military tactics", "evolution of warfare techniques"],
-            "abstract_terms": ["historical siege engines development", "military tactics in medieval period", "crusades impact on warfare"],
-            "general_terms": ["medieval siege warfare", "crusades military history"]
-            }
+KEY SUCCESS FACTORS:
+- Use terms that would appear in actual paper TITLES
+- Focus on the core academic field/domain
+- Keep it simple and direct
+- Generate enough options (4-5) for good coverage
+- Think like an academic author naming their paper
+    
 
-            EXAMPLE 4 - SOCIOLOGY:
-            Topic: Urban sociology
-            Query: Impact of gentrification on community cohesion
+EXAMPLE 4 - POLITICAL SCIENCE:
+Topic: "democratization processes"
+Query: "role of civil society in democratic transitions"
 
-            ✅ GOOD STRUCTURE:
-            {
-            "exact_phrases": ["urban sociology gentrification community impact", "sociology gentrification community cohesion effects", "urban community gentrification social changes"],
-            "title_terms": ["urban gentrification community cohesion", "sociology neighborhood displacement effects", "urban community social fragmentation"],
-            "abstract_terms": ["urban", "gentrification", "community"],
-            "general_terms": ["urban gentrification effects", "sociology community displacement"]
-            }
+✅ PERFECT FOR ARXIV:
+{
+  "exact_phrases": ["democratization", "civil society", "democratic transitions", "political transitions", "democracy building"],
+  "title_terms": ["democratization", "civil society", "political change", "democratic reform", "transition studies"],
+  "abstract_terms": ["democratization", "democracy", "transitions", "politics"],
+  "general_terms": ["democratization", "civil society", "political transitions", "democracy studies"]
+}
 
-            ❌ BAD STRUCTURE:
-            {
-            "exact_phrases": ["gentrification effects on urban communities", "community cohesion challenges in cities", "social consequences of neighborhood transformation"],
-            "title_terms": ["impact of gentrification", "community changes research", "urban social dynamics"],
-            "abstract_terms": ["socioeconomic shifts neighborhoods", "displacement of original residents", "social fabric in changing communities"],
-            "general_terms": ["urban change studies", "community sociology research"]
-            }
+EXAMPLE 5 - LITERATURE:
+Topic: "shakespearean tragedy"
+Query: "modern interpretations of hamlet psychology"
 
-            EXAMPLE 5 - PSYCHOLOGY:
-            Topic: Developmental psychology
-            Query: Effects of early childhood trauma on adult attachment styles
+✅ PERFECT FOR ARXIV:
+{
+  "exact_phrases": ["shakespeare hamlet", "hamlet psychology", "shakespearean tragedy", "hamlet analysis", "tragedy studies"],
+  "title_terms": ["shakespeare hamlet", "hamlet psychology", "literary analysis", "tragedy interpretation", "character analysis"],
+  "abstract_terms": ["shakespeare", "hamlet", "tragedy", "psychology"],
+  "general_terms": ["shakespeare hamlet", "literary psychology", "tragedy analysis", "dramatic character"]
+}
 
-            ✅ GOOD STRUCTURE:
-            {
-            "exact_phrases": ["developmental psychology childhood trauma attachment", "psychology trauma adult attachment effects", "developmental childhood trauma attachment relationships"],
-            "title_terms": ["developmental trauma attachment styles", "psychology childhood trauma effects", "developmental attachment trauma patterns"],
-            "abstract_terms": ["developmental trauma adult relationships", "psychology attachment trauma studies", "developmental childhood adverse experiences"],
-            "general_terms": ["developmental trauma attachment", "psychology childhood relationships"]
-            }
+EXAMPLE 6 - ENGINEERING:
+Topic: "structural engineering"
+Query: "composite materials for earthquake resistant buildings"
 
-            ❌ BAD STRUCTURE:
-            {
-            "exact_phrases": ["childhood trauma effects on attachment", "attachment styles influenced by trauma", "adult relationship patterns after trauma"],
-            "title_terms": ["trauma and attachment", "childhood adverse experiences", "adult relationship difficulties"],
-            "abstract_terms": ["early trauma consequences", "attachment theory applications", "psychological effects of maltreatment"],
-            "general_terms": ["trauma studies", "attachment research"]
-            }
+✅ PERFECT FOR ARXIV:
+{
+  "exact_phrases": ["structural engineering", "composite materials", "earthquake engineering", "seismic design", "building materials"],
+  "title_terms": ["structural engineering", "composite materials", "earthquake resistance", "seismic structures", "building design"],
+  "abstract_terms": ["engineering", "composites", "seismic", "materials"],
+  "general_terms": ["structural composites", "earthquake engineering", "seismic materials", "building structures"]
+}
 
-            EXAMPLE 6 - POLITICAL SCIENCE:
-            Topic: Democratization processes
-            Query: Role of civil society in democratic transitions
-
-            ✅ GOOD STRUCTURE:
-            {
-            "exact_phrases": ["democratization civil society transitions role", "political science democratic transitions civil", "democratization processes civil organizations role"],
-            "title_terms": ["democratization civil society role", "political democratic transitions mechanisms", "democratization civil resistance studies"],
-            "abstract_terms": ["democratization civil organizations impact", "political transitions civil participation", "democratization social movements influence"],
-            "general_terms": ["democratization civil society", "political democratic transitions"]
-            }
-
-            ❌ BAD STRUCTURE:
-            {
-            "exact_phrases": ["civil society's role in democratization", "democratic transitions through social movements", "influence of NGOs on political change"],
-            "title_terms": ["civil society impact", "democratic transition studies", "political change analysis"],
-            "abstract_terms": ["social movements in transitions", "civil resistance effectiveness", "non-governmental organization roles"],
-            "general_terms": ["civil society studies", "democratic transition research"]
-            }
-
-            EXAMPLE 7 - DRAMA:
-            Topic: Shakespearean tragedy
-            Query: Modern interpretations of Hamlet's psychological complexity
-
-            ✅ GOOD STRUCTURE:
-            {
-            "exact_phrases": ["shakespearean tragedy hamlet psychological interpretations", "drama hamlet psychological complexity modern", "shakespearean hamlet psychology contemporary analysis"],
-            "title_terms": ["shakespearean hamlet psychological readings", "drama tragedy modern interpretations", "shakespearean character psychology analysis"],
-            "abstract_terms": ["hamlet, "drama ", "contemporary""],
-            "general_terms": ["shakespearean hamlet psychology", "drama tragedy interpretations"]
-            }
-
-            ❌ BAD STRUCTURE:
-            {
-            "exact_phrases": ["psychological complexity in hamlet", "modern interpretations of shakespeare", "character analysis in tragedy"],
-            "title_terms": ["hamlet's psychology", "modern theatrical interpretations", "character complexity studies"],
-            "abstract_terms": ["psychological readings of classics", "theatrical character development", "dramatic psychological elements"],
-            "general_terms": ["hamlet studies", "dramatic psychology"]
-            }
-
-            EXAMPLE 8 - ENGINEERING:
-            Topic: Structural engineering
-            Query: Advanced composite materials for earthquake-resistant buildings
-
-            ✅ GOOD STRUCTURE:
-            {
-            "exact_phrases": ["structural engineering composite materials earthquake", "engineering earthquake-resistant composite applications", "structural composite materials building performance"],
-            "title_terms": ["structural composite earthquake resistance", "engineering advanced materials buildings", "structural seismic composite development"],
-            "abstract_terms": ["earthquake", "engineering", "seismic design"],
-            "general_terms": ["structural composite materials", "engineering earthquake resistance"]
-            }
-
-            ❌ BAD STRUCTURE:
-            {
-            "exact_phrases": ["composite materials for seismic design", "earthquake resistance through advanced materials", "building performance with composites"],
-            "title_terms": ["advanced composite applications", "seismic building design", "material science innovations"],
-            "abstract_terms": ["earthquake engineering developments", "material performance in structures", "building resistance technologies"],
-            "general_terms": ["composite materials research", "seismic engineering studies"]
-            }
-
-            REMEMBER: Always position the MAIN DOMAIN TERMS at the BEGINNING of each search phrase to maximize arXiv search relevance!
-            IMPORTANT: You must first take time to understand the main research subject and key words and make sure that those words are at the BEGINNING of the search terms.
+KEY SUCCESS FACTORS:
+- Use terms that would appear in actual paper TITLES
+- Focus on the core academic field/domain
+- Keep it simple and direct
+- Generate enough options (4-5) for good coverage
+- Think like an academic author naming their paper
             """
     
     # Create enhanced user prompt
@@ -348,7 +271,7 @@ def generate_structured_search_terms(llm: LLM, topics: List[str], queries: List[
 
 
 
-def search_arxiv_with_structured_queries(search_structure: Dict, max_results=400, original_topics=None, original_queries=None) -> Dict[str, Any]:
+def search_arxiv_with_structured_queries(search_structure: Dict, max_results=50, original_topics=None, original_queries=None) -> Dict[str, Any]:
     """
     Enhanced arXiv search using structured queries with result limiting and rate limiting.
     Now returns both URLs and metadata to eliminate duplicate API calls.
@@ -385,26 +308,26 @@ def search_arxiv_with_structured_queries(search_structure: Dict, max_results=400
     all_results = []
     all_metadata = {}  # Dict mapping PDF URLs to metadata
     
-    # Calculate results per query to distribute fairly
+    # Calculate results per query - be more generous to get better coverage
     if max_results and len(queries) > 0:
-        # Add 1 to ensure we get enough results even with duplicates
-        results_per_query = min(30, (max_results // len(queries)) + 1)
+        # Increase results per query significantly for better coverage
+        # For simple queries like "sports psychology", we want lots of results
+        results_per_query = max(15, min(50, max_results // 2))  # At least 15, up to 50
     else:
-        results_per_query = 30
+        results_per_query = 50  # Default to higher number for better coverage
     
     debug_print(f"Fetching up to {results_per_query} results per query to reach target of {max_results}")
+    debug_print(f"Using {len(queries)} queries, expecting to find {len(queries) * results_per_query} total results before deduplication")
     
     # Process queries in order of creation (most specific first)
     for i, query in enumerate(queries):
-        # Check if we already have enough results
-        if max_results and len(all_results) >= max_results:
-            debug_print(f"Already have {len(all_results)} results, stopping search")
-            break
+        # Don't stop early - let all queries run to get maximum coverage
+        # We'll deduplicate later
         
         # Add delay between queries to respect arXiv rate limits
         if i > 0:  # Don't delay the first request
-            debug_print(f"Waiting 1.2 seconds before next arXiv query to respect rate limits...")
-            time.sleep(1.2)
+            debug_print(f"Waiting 2 seconds before next arXiv query to respect rate limits...")
+            time.sleep(2)
 
         try:
             
@@ -593,36 +516,49 @@ def search_arxiv(search_terms: List[str], max_results=60) -> List[str]:
 
 
 def build_arxiv_queries(structured_terms: Dict) -> List[str]:
-    """Build arXiv queries from structured search terms."""
+    """Build arXiv queries from structured search terms optimized for maximum results."""
     debug_print("Building arXiv queries from structured terms")
     queries = []
     
-    # Add exact phrase searches in all fields
-    for phrase in structured_terms.get("exact_phrases", []):
-        if phrase.strip():
-            queries.append(f'all:"{phrase}"')
+    # Strategy: Use fewer, broader queries to maximize results
+    # arXiv works best with simple keyword searches, not complex exact phrases
     
-    # Add title-specific searches
-    for term in structured_terms.get("title_terms", []):
+    # 1. Add the BEST exact phrases (only 2-3 most important ones)
+    exact_phrases = structured_terms.get("exact_phrases", [])
+    if exact_phrases:
+        # Use only the first 2 phrases to avoid over-restriction
+        for phrase in exact_phrases[:2]:
+            if phrase.strip():
+                queries.append(f'all:"{phrase}"')
+    
+    # 2. Add broad title searches (these work very well in arXiv)
+    for term in structured_terms.get("title_terms", [])[:3]:  # Limit to 3 best
         if term.strip():
             queries.append(f'ti:{term}')
     
-    # Add abstract-specific searches as combined AND query
+    # 3. Use individual abstract terms (not combined) for better coverage
     abstract_terms = [term for term in structured_terms.get("abstract_terms", []) if term.strip()]
     if abstract_terms:
-        abstract_query = " AND ".join([f"abs:{term}" for term in abstract_terms])
-        queries.append(f"({abstract_query})")
+        # Use single terms instead of AND combinations
+        for term in abstract_terms[:2]:  # Take first 2 terms
+            queries.append(f"abs:{term}")
     
-    # Add general terms with logical OR between them
+    # 4. Add broad general searches with OR logic
     general_terms = [term for term in structured_terms.get("general_terms", []) if term.strip()]
     if general_terms:
+        # Create one OR query with all general terms
         general_query = " OR ".join([f"all:{term}" for term in general_terms])
         queries.append(f"({general_query})")
     
-    # If no valid queries were generated, create a fallback query
-    if not queries and structured_terms.get("general_terms"):
-        fallback_term = " AND ".join(structured_terms["general_terms"][:2])
-        queries.append(f'all:{fallback_term}')
+    # 5. Add a fallback broad search using any available terms
+    if not queries:
+        # Create a simple keyword search as fallback
+        all_terms = (structured_terms.get("exact_phrases", []) + 
+                    structured_terms.get("title_terms", []) +
+                    structured_terms.get("general_terms", []))
+        if all_terms:
+            # Use the first available term for a broad search
+            queries.append(f'all:{all_terms[0]}')
     
     debug_print(f"Built {len(queries)} arXiv queries: {queries}")
     return queries

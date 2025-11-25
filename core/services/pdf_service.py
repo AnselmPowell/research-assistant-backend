@@ -296,27 +296,28 @@ def extract_information_from_text(text: str, search_terms:List[str], queries: Li
         3. Format citations as a separate list to maintain clarity
         """
     
-    page_text = f""" 
-    Below is the text from an academic paper you must extract only information from it that the user is explictly look for, nothing else. IF there is zero information to extact that is fine DONT BE AFRAID TO RETURN NOTHING, it has to match exactly what the user is looking for.  ####\n\n
-    {text}
-    \n#####\n\n
+    page_text = f"""
+CONTENT FROM ACADEMIC PAPER:
+{text}
+
+TASK: Extract passages that help answer the user's questions or explain these topics. Be generous - if content seems related or educational, include it.
+
+Remember: Academic papers are full of useful information even if they don't provide textbook definitions. Extract anything that would help someone learn about these topics.
+"""
     
-    Above is the text from an academic paper you must extract only information from it that the user is explictly look for, nothing else. IF there is zero information to extact that is fine DONT BE AFRAID TO RETURN NOTHING, it has to match exactly what the user is looking for. ###\n\n
-     """
     
-    
-    # Create output schema
+    # Create output schema - SIMPLIFIED for better extraction
     output_schema = {
         "type": "array",
         "items": {
-            "type": "object",
+            "type": "object", 
             "properties": {
-                "content": {"type": "string", "description": "The extracted text content from the paper that relates to the query"},
-                "page_number": {"type": "integer", "description": "The page number where this content was found (1-based indexing)"},
-                "matches_topic": {"type": "string", "description": "The exact Users Queries this content relates to "},
-                "justification": {"type": "string", "description": "Explain in detail what the text you extracted is talking about in the boarder context of the full academic paper. And explain what the user is asking for and why the text you extracted relates to the users query (matches_topic) and why is answers what they are looking "},
-                "inline_citations": {"type": "array", "items": {"type": "string"}, "description": "Any citation references found in the extracted text like [1] or [Smith et al., 2020]"},
-                "reference_list": {"type": "object", "additionalProperties": {"type": "string"}, "description": "Map of citation keys to full reference strings found in the document"}
+                "content": {"type": "string", "description": "The extracted text content from the paper"},
+                "page_number": {"type": "integer", "description": "Page number (1-based indexing)"},
+                "matches_topic": {"type": "string", "description": "Which user question this relates to"},
+                "justification": {"type": "string", "description": "Why this content is useful"},
+                "inline_citations": {"type": "array", "items": {"type": "string"}, "description": "Any citation references like [1] or [Smith et al., 2020]"},
+                "reference_list": {"type": "object", "additionalProperties": {"type": "string"}, "description": "Citation mappings"}
             },
             "required": ["content", "page_number", "matches_topic", "justification"]
         }
@@ -327,28 +328,40 @@ def extract_information_from_text(text: str, search_terms:List[str], queries: Li
         debug_print("Calling LLM for information extraction")
         result = llm.structured_output(page_text, output_schema, system_prompt)
         
-        # Ensure result is a list
-        if isinstance(result, list):
-            debug_print(f"Extracted {len(result)} items from text")
-            return result
-        elif isinstance(result, dict) and "items" in result:
-            debug_print(f"Extracted {len(result['items'])} items from text")
-            return result["items"]
-        elif isinstance(result, dict):
-            # Try to find an array in the response
-            for key, value in result.items():
-                if isinstance(value, list):
-                    debug_print(f"Extracted {len(value)} items from text")
-                    return value
+        # Enhanced debugging
+        debug_print(f"LLM raw response type: {type(result)}")
+        if isinstance(result, dict):
+            debug_print(f"Response keys: {result.keys()}")
         
-        debug_print(f"Unexpected extraction format: {result}")
-        return []
+        # Handle the response - account for various formats the LLM might return
+        extracted_items = []
+        
+        if isinstance(result, list):
+            # Direct array response
+            extracted_items = result
+        elif isinstance(result, dict):
+            # Check for different possible keys - handle {"type":"array","items":[...]}
+            if "items" in result:
+                extracted_items = result["items"]
+            else:
+                # Try to find any array in the response
+                for key, value in result.items():
+                    if isinstance(value, list):
+                        extracted_items = value
+                        break
+        
+        debug_print(f"Extracted {len(extracted_items)} items from text")
+        if len(extracted_items) == 0:
+            debug_print("WARNING: LLM returned empty list - check if prompt is too restrictive")
+        
+        return extracted_items
     
     except Exception as e:
         logger.error(f"Error extracting information: {e}")
         debug_print(f"ERROR extracting information: {str(e)}")
         return []
 
+        
 def determine_note_type(content: str, topic: str) -> str:
     """Determine the type of note based on content and topic."""
     content_lower = content.lower()
@@ -553,8 +566,8 @@ def process_pdf(pdf_url: str, search_terms: List[str], query_embedding: List[flo
             # ADVANCED PATH for larger documents using Google embeddings batch processing
             debug_print(f"Using Advanced Path with Google embeddings for document with {page_count} pages")
             
-            # Calculate relevance threshold
-            relevance_threshold = settings.RELEVANCE_THRESHOLD if hasattr(settings, 'RELEVANCE_THRESHOLD') else 0.20
+            # Calculate relevance threshold - temporarily lowered for testing
+            relevance_threshold = settings.RELEVANCE_THRESHOLD if hasattr(settings, 'RELEVANCE_THRESHOLD') else 0.15
             debug_print(f"Using relevance threshold: {relevance_threshold}")
             
             # Prepare all pages for batch embedding processing

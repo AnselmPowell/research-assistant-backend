@@ -7,6 +7,7 @@ import logging
 import threading
 import uuid
 import json
+import time
 import concurrent.futures
 from typing import List, Dict, Any
 from django.db import transaction, close_old_connections
@@ -14,6 +15,7 @@ from django.conf import settings
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from .models import ResearchSession, Paper, Note
+from .services.monitoring_service import start_monitoring, get_current_monitor, finalize_monitoring
 from .services.llm_service import LLM
 from .services.search_service import generate_search_questions, generate_structured_search_terms, search_arxiv_with_structured_queries
 from .services.embedding_service import get_embedding
@@ -92,6 +94,8 @@ def _process_paper_thread_safe(paper_id: str, search_terms: List[str], query_emb
     # Close old connections to ensure thread safety with Django's DB connections
     close_old_connections()
     
+    monitor = get_current_monitor()
+    
     try:
         # Get paper
         paper = Paper.objects.get(id=paper_id)
@@ -101,7 +105,17 @@ def _process_paper_thread_safe(paper_id: str, search_terms: List[str], query_emb
         paper.save()
         print(f"Started processing paper {paper.id}: {paper.url}")
         
+        # Log PDF processing start for monitoring
+        if monitor:
+            monitor.log_pdf_processing_start(
+                str(paper.id),
+                paper.url,
+                "Processing...",  # Title will be updated after processing
+                0  # Pages will be updated after processing
+            )
+        
         # Process the PDF
+        pdf_start_time = time.time()
         result = process_pdf(
             paper.url, 
             search_terms,
@@ -109,6 +123,7 @@ def _process_paper_thread_safe(paper_id: str, search_terms: List[str], query_emb
             info_queries,
             explanation
         )
+        pdf_processing_time = time.time() - pdf_start_time
         
         # Update paper with results
         with transaction.atomic():
@@ -122,7 +137,20 @@ def _process_paper_thread_safe(paper_id: str, search_terms: List[str], query_emb
             paper.error_message = result.get('error_message', '')
             paper.save()
             
+            # Log processing strategy and page data for monitoring
+            if monitor:
+                strategy = "Simple Path" if paper.total_pages <= 8 else "Advanced Path"
+                monitor.log_processing_strategy(str(paper.id), strategy)
+                
+                # For Advanced Path, simulate relevant pages tracking (in real implementation, this comes from PDF service)
+                if paper.total_pages > 8 and result.get('status') == 'success':
+                    # This would be provided by enhanced PDF processing monitoring
+                    relevant_pages = []
+                    page_similarities = {}
+                    monitor.log_relevant_pages(str(paper.id), relevant_pages, page_similarities)
+            
             # Create Note objects for each extracted note
+            notes_created = 0
             if result.get('status') == 'success' and result.get('notes'):
                 for note_data in result.get('notes', []):
                     # Verify justification exists, add default if not
@@ -142,6 +170,16 @@ def _process_paper_thread_safe(paper_id: str, search_terms: List[str], query_emb
                         inline_citations=note_data.get('inline_citations', []),
                         reference_list=note_data.get('reference_list', {})
                     )
+                    notes_created += 1
+            
+            # Log PDF processing completion for monitoring
+            if monitor:
+                monitor.log_pdf_processing_complete(
+                    str(paper.id),
+                    notes_created,
+                    pdf_processing_time,
+                    result.get('status', 'error')
+                )
         
         # Send real-time update to frontend via WebSocket
         try:
@@ -203,6 +241,10 @@ def _process_research_session_thread(session_id: str, settings_data=None):
             logger.error(f"Session {session_id} not found")
             return
         
+        # Initialize monitoring (development only)
+        monitor = start_monitoring(session_id)
+        monitor.log_session_start(session.topics, session.info_queries, session.direct_urls)
+        
         # Update session status
         session.status = 'searching'
         session.save()
@@ -246,14 +288,11 @@ def _process_research_session_thread(session_id: str, settings_data=None):
             expanded_questions, explanation = generate_search_questions(llm, [], session.info_queries)
             
             # Create empty search structure for compatibility with later code
-            # search_structure = {
-            #     "exact_phrases": [],
-            #     "title_terms": [],
-            #     "abstract_terms": [],
-            #     "general_terms": []
-            # }
-
             search_structure = generate_structured_search_terms(llm, [], session.info_queries)
+            
+            # Log monitoring data
+            monitor.log_structured_search_terms(search_structure)
+            monitor.log_arxiv_search([], 0, 0.0)  # No arXiv search in URL-only mode
             
             # Generate query embedding for PDF processing
             query_embedding = get_embedding(" ".join(expanded_questions))
@@ -261,6 +300,8 @@ def _process_research_session_thread(session_id: str, settings_data=None):
             # Original code for searches with topics
             # Generate structured search terms for better ArXiv results
             search_structure = generate_structured_search_terms(llm, session.topics, session.info_queries)
+            monitor.log_structured_search_terms(search_structure)
+            
             print(f"Generated search structure with {len(search_structure.get('exact_phrases', []))} exact phrases, "
                 f"{len(search_structure.get('title_terms', []))} title terms, "
                 f"{len(search_structure.get('abstract_terms', []))} abstract terms, and "
@@ -277,13 +318,25 @@ def _process_research_session_thread(session_id: str, settings_data=None):
             direct_urls = session.direct_urls
             
             # Search ArXiv with structured queries for better results
+            arxiv_search_start = time.time()
             arxiv_search_result = search_arxiv_with_structured_queries(
                 search_structure,
                 original_topics=session.topics,
                 original_queries=session.info_queries
             )
+            arxiv_search_duration = time.time() - arxiv_search_start
+            
             arxiv_urls = arxiv_search_result['urls']
             arxiv_metadata = arxiv_search_result['metadata']
+            
+            # Monitor arXiv search
+            from .services.search_service import build_arxiv_queries
+            monitor.log_arxiv_search(
+                build_arxiv_queries(search_structure),
+                len(arxiv_urls),
+                arxiv_search_duration
+            )
+            
             print(f"Found {len(arxiv_urls)} papers from arXiv search using structured queries (including original topics/queries)")
             
             # Combine URLs, prioritizing direct URLs
@@ -338,10 +391,21 @@ def _process_research_session_thread(session_id: str, settings_data=None):
         try:
             from .services.paper_filter_service import filter_paper_urls_with_metadata
             
+            filter_start_time = time.time()
+            
             # For URL-only mode, skip pre-filtering
             if is_url_only_search:
                 print(f"URL-only mode with {len(all_candidate_urls)} URLs - skipping pre-filtering")
                 relevant_urls = all_candidate_urls
+                
+                # Monitor URL-only filtering (no actual filtering)
+                filter_duration = time.time() - filter_start_time
+                monitor.log_pre_filtering(
+                    len(all_candidate_urls),
+                    len(all_candidate_urls),
+                    0,
+                    filter_duration
+                )
             else:
                 # Regular pre-filtering for topic searches or many URLs with metadata
                 filter_result = filter_paper_urls_with_metadata(
@@ -354,12 +418,21 @@ def _process_research_session_thread(session_id: str, settings_data=None):
                     direct_urls  # Pass direct URLs for prioritization
                 )
                 
+                filter_duration = time.time() - filter_start_time
                 print(f"Pre-filtering results: {filter_result}")
                 
                 # Update with filter results
                 if filter_result.get('success'):
                     print(f"Pre-filtering completed: {filter_result.get('papers_relevant', 0)} relevant, "
                         f"{filter_result.get('papers_filtered', 0)} filtered out")
+                    
+                    # Monitor pre-filtering results
+                    monitor.log_pre_filtering(
+                        filter_result.get('papers_processed', len(all_candidate_urls)),
+                        filter_result.get('papers_relevant', 0),
+                        filter_result.get('papers_filtered', 0),
+                        filter_duration
+                    )
                     
                     # Send pre-filtering stats via WebSocket
                     send_status_update(
@@ -450,10 +523,17 @@ def _process_research_session_thread(session_id: str, settings_data=None):
             session.status = 'completed'
             session.save()
             
+            # Calculate final note statistics for monitoring
+            total_notes_extracted = sum(paper.notes.count() for paper in session.papers.all())
+            
+            # Log final notes to monitoring (assume no final filtering for now)
+            if monitor:
+                monitor.log_final_notes(total_notes_extracted, 0)
+                
             # Send completion notification via WebSocket
             summary = {
                 'total_papers': total_papers,
-                'total_notes': sum(paper.notes.count() for paper in session.papers.all()),
+                'total_notes': total_notes_extracted,
                 'papers_with_notes': sum(1 for paper in session.papers.all() if paper.notes.count() > 0)
             }
             send_status_update(
@@ -475,3 +555,6 @@ def _process_research_session_thread(session_id: str, settings_data=None):
             print(f"Session {session_id} marked as error due to exception")
         except:
             logger.error(f"Failed to update session {session_id} status after error")
+    finally:
+        # Always finalize monitoring to generate the report (development only)
+        finalize_monitoring()

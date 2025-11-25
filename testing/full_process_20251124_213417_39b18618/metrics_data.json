@@ -1,0 +1,187 @@
+{
+  "session_info": {
+    "session_id": "39b18618-96c9-48b9-b028-84cce0011217",
+    "start_time": "2025-11-24T21:34:17.053988",
+    "topics": [
+      "Urban planning sustainability"
+    ],
+    "info_queries": [
+      "Green infrastructure benefits",
+      "Sustainable approaches to urban planning and design"
+    ],
+    "direct_urls": [],
+    "is_url_only_search": false,
+    "end_time": "2025-11-24T21:40:35.449209"
+  },
+  "search_terms": {
+    "exact_phrases": [
+      "urban planning sustainability green infrastructure",
+      "sustainable urban planning design approaches",
+      "green infrastructure urban planning benefits"
+    ],
+    "title_terms": [
+      "urban planning sustainability benefits",
+      "green infrastructure sustainable urban design",
+      "sustainable urban planning strategies"
+    ],
+    "abstract_terms": [
+      "sustainability",
+      "infrastructure",
+      "urban"
+    ],
+    "general_terms": [
+      "urban sustainability practices",
+      "sustainable planning approaches"
+    ]
+  },
+  "arxiv_search": {
+    "queries_generated": [
+      "all:\"urban planning sustainability green infrastructure\"",
+      "all:\"sustainable urban planning design approaches\"",
+      "all:\"green infrastructure urban planning benefits\"",
+      "ti:urban planning sustainability benefits",
+      "ti:green infrastructure sustainable urban design",
+      "ti:sustainable urban planning strategies",
+      "(abs:sustainability AND abs:infrastructure AND abs:urban)",
+      "(all:urban sustainability practices OR all:sustainable planning approaches)"
+    ],
+    "total_papers_found": 6,
+    "search_duration": 273.861750125885
+  },
+  "pre_filtering": {
+    "total_papers": 6,
+    "relevant_papers": 5,
+    "filtered_papers": 1,
+    "filtering_duration": 2.9261066913604736
+  },
+  "pdf_processing": {
+    "papers_processed": [
+      {
+        "paper_id": "5230d172-1f30-49d9-b7b8-9512b89cd030",
+        "url": "https://arxiv.org/pdf/2504.14580v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-24T21:39:12.265601",
+        "processing_strategy": "Simple Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 10.316311597824097,
+        "status": "success"
+      },
+      {
+        "paper_id": "c17911fe-4a28-4b17-bdf3-4f8a5d32acdf",
+        "url": "https://arxiv.org/pdf/2510.21876v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-24T21:39:23.147795",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [
+          0,
+          4,
+          6,
+          9,
+          14,
+          15,
+          16
+        ],
+        "page_similarities": {
+          "0": 0.6902561483337057,
+          "4": 0.30906904638441235,
+          "6": 0.5440921520087527,
+          "9": 0.22996128048914757,
+          "14": 0.48796428288643934,
+          "15": 0.7863483190566172,
+          "16": 0.2035481994602702
+        },
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 20.53829312324524,
+        "status": "success"
+      },
+      {
+        "paper_id": "8f2d3dbe-d364-43b2-be80-65ec52241320",
+        "url": "https://arxiv.org/pdf/2411.17194v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-24T21:39:44.232064",
+        "processing_strategy": "Simple Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 9.817675113677979,
+        "status": "success"
+      },
+      {
+        "paper_id": "b3e584ef-ee6a-43c3-912d-71078cee6129",
+        "url": "https://arxiv.org/pdf/2104.04131v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-24T21:39:54.610399",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [
+          0,
+          6,
+          9,
+          10
+        ],
+        "page_similarities": {
+          "0": 0.25790939267191904,
+          "6": 0.6267729119354493,
+          "9": 0.3506420252959957,
+          "10": 0.6277401867490866
+        },
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 15.491056680679321,
+        "status": "success"
+      },
+      {
+        "paper_id": "810972a7-ee4b-4677-b1fb-c3867c9645b0",
+        "url": "https://arxiv.org/pdf/2306.05951v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-24T21:40:10.645521",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [
+          1,
+          2,
+          5,
+          9,
+          11
+        ],
+        "page_similarities": {
+          "1": 0.45398579392556854,
+          "2": 0.4862710998231325,
+          "5": 0.7223329835748453,
+          "9": 0.5018141996262724,
+          "11": 0.3252528161849382
+        },
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 24.214082717895508,
+        "status": "success"
+      }
+    ],
+    "total_processing_time": 80.37741923332214,
+    "processing_strategy": {}
+  },
+  "note_extraction": {
+    "total_notes_extracted": 0,
+    "notes_per_paper": {
+      "5230d172-1f30-49d9-b7b8-9512b89cd030": 0,
+      "c17911fe-4a28-4b17-bdf3-4f8a5d32acdf": 0,
+      "8f2d3dbe-d364-43b2-be80-65ec52241320": 0,
+      "b3e584ef-ee6a-43c3-912d-71078cee6129": 0,
+      "810972a7-ee4b-4677-b1fb-c3867c9645b0": 0
+    },
+    "final_notes_returned": 0,
+    "notes_filtered_out": 0
+  },
+  "performance": {
+    "total_duration": 378.395221,
+    "bottlenecks": []
+  }
+}

@@ -106,27 +106,26 @@ database_url = os.environ.get('DATABASE_URL')
 # Configure database with dj-database-url
 if database_url:
     # Using Neon PostgreSQL
-    # DATABASES = {
-    #     'default': dj_database_url.config(
-    #         default=database_url,
-    #         conn_max_age=600,  # connection lifetime in seconds
-    #         conn_health_checks=True,  # enable connection health checks
-    #         ssl_require=True  # require SSL for Neon connection
-    #     )
-    # }
-
-     # # Add SSL configuration for Neon
-    # DATABASES['default']['OPTIONS'] = {
-    #     'sslmode': 'require',
-    # }
-    
-
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
+        'default': dj_database_url.config(
+            default=database_url,
+            conn_max_age=600,  # connection lifetime in seconds
+            conn_health_checks=True,  # enable connection health checks
+            ssl_require=True  # require SSL for Neon connection
+        )
     }
+
+     # Add SSL configuration for Neon
+    DATABASES['default']['OPTIONS'] = {
+        'sslmode': 'require',
+    }
+    
+    # DATABASES = {
+    #     'default': {
+    #         'ENGINE': 'django.db.backends.sqlite3',
+    #         'NAME': BASE_DIR / 'db.sqlite3',
+    #     }
+    # }
    
     # Additional settings based on environment
     if IS_PRODUCTION:
@@ -279,6 +278,19 @@ os.environ['DEFAULT_MODEL'] = 'openai:gpt-4o-mini'
 
 from datetime import timedelta
 
+# Authentication settings
+AUTH_SETTINGS = {
+    'TOKEN_LIFETIME': 60,  # Access token lifetime in minutes
+    'REFRESH_TOKEN_LIFETIME': 7,  # Refresh token lifetime in days
+    'PASSWORD_RESET_TIMEOUT': 24,  # Password reset timeout in hours
+    'MAX_LOGIN_ATTEMPTS': 5,  # Maximum failed login attempts before lockout
+    'LOGIN_ATTEMPT_TIMEOUT': 15  # Lockout duration in minutes
+}
+
+# JWT token settings
+JWT_SETTINGS = {
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
     'VERIFYING_KEY': None,
     'ACCESS_TOKEN_LIFETIME': timedelta(days=30),  # Long-lived for development
     'REFRESH_TOKEN_LIFETIME': timedelta(days=31),
