@@ -111,7 +111,7 @@ def get_user_input() -> tuple:
     print("\nProcessing Limits:")
     try:
         max_papers = int(input("Max papers to process (default: 5): ").strip() or "5")
-        max_papers = min(max_papers, 10)  # Cap at 10 for testing
+        max_papers = min(max_papers, 400)  # Cap at 10 for testing
     except ValueError:
         max_papers = 5
     
