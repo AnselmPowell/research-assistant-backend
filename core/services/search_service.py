@@ -65,7 +65,7 @@ RESPONSE FORMAT:
 {
   "exact_phrases": [4-5 phrases, 2-3 words max],
   "title_terms": [4-5 terms, 2-3 words max], 
-  "abstract_terms": [3-4 single keywords, 1 word only],
+  "abstract_terms": [3-4 single keywords, 1 word only, MUST PROVIDE MIN OF 3 KEYWORDS],
   "general_terms": [3-4 terms, 2-3 words max]
 }
 
@@ -77,10 +77,10 @@ Query: "what is sports psychology"
 
 ✅ PERFECT FOR ARXIV:
 {
-  "exact_phrases": ["sports psychology", "athlete psychology", "performance psychology", "sport mental", "athletic psychology"],
-  "title_terms": ["sports psychology", "athlete performance", "mental training", "sport science", "athletic behavior"],
-  "abstract_terms": ["psychology", "performance", "training", "behavior"],
-  "general_terms": ["sports psychology", "athlete mental", "performance training", "sport behavior"]
+  "exact_phrases": ["sports psychology", "athlete psychology", "Sport performance psychology", "sport mental", "athletic psychology"],
+  "title_terms": ["sports psychology", "athlete psychology", "mental training", "sport science", "athletic behavior"],
+  "abstract_terms": ["psychology", "Sport", "training", "behavior"],
+  "general_terms": ["sports psychology", "athlete mental", "psychology in sport", "sport behavior"]
 }
 
 ❌ BAD FOR ARXIV (too long):
@@ -97,8 +97,8 @@ Query: "what is market volatility"
 {
   "exact_phrases": ["market volatility", "financial volatility", "price volatility", "volatility models", "market risk"],
   "title_terms": ["market volatility", "financial markets", "price dynamics", "volatility forecasting", "market behavior"],
-  "abstract_terms": ["volatility", "markets", "finance", "risk"],
-  "general_terms": ["market volatility", "financial risk", "price movements", "market dynamics"]
+  "abstract_terms": ["volatility", "markets", "finance", "risk", "stock market"],
+  "general_terms": ["stock market", "market volatility", "financial risk", "price movements", "market dynamics"]
 }
 
 EXAMPLE 3 - URBAN PLANNING:
@@ -195,12 +195,12 @@ KEY SUCCESS FACTORS:
             "abstract_terms": {
                 "type": "array",
                 "items": {"type": "string"},
-                "description": "2-3 abstract search terms they must contain words/keyword from the original user query"
+                "description": "2-3 abstract search terms they must contain words/keyword related to the user question, Must have 3"
             },
             "general_terms": {
                 "type": "array",
                 "items": {"type": "string"},
-                "description": "1-2 general search terms they must contain words from the  original user query ,  "
+                "description": "1-2 general search terms they must contain words/keyword related to the user question ,  "
             }
         }
     }
