@@ -1,0 +1,217 @@
+{
+  "session_info": {
+    "session_id": "1a5f7cde-5d20-4774-afb5-2d2ae822b52f",
+    "start_time": "2025-11-26T12:58:11.910670",
+    "topics": [
+      "Psychological trauma",
+      "child Psychology"
+    ],
+    "info_queries": [
+      "PTSD treatment methods for children",
+      "Childhood trauma long-term effects"
+    ],
+    "direct_urls": [],
+    "is_url_only_search": false,
+    "end_time": "2025-11-26T13:02:09.039963"
+  },
+  "search_terms": {
+    "exact_phrases": [
+      "PTSD treatment",
+      "child trauma",
+      "childhood PTSD",
+      "trauma effects",
+      "psychological trauma"
+    ],
+    "title_terms": [
+      "PTSD therapy",
+      "childhood trauma",
+      "trauma recovery",
+      "child psychological effects",
+      "trauma interventions"
+    ],
+    "abstract_terms": [
+      "PTSD",
+      "childhood",
+      "trauma",
+      "psychology"
+    ],
+    "general_terms": [
+      "psychological trauma",
+      "children's psychology",
+      "PTSD treatments",
+      "long-term effects"
+    ]
+  },
+  "arxiv_search": {
+    "queries_generated": [
+      "all:\"PTSD treatment\"",
+      "all:\"child trauma\"",
+      "ti:PTSD therapy",
+      "ti:childhood trauma",
+      "ti:trauma recovery",
+      "abs:PTSD",
+      "abs:childhood",
+      "(all:psychological trauma OR all:children's psychology OR all:PTSD treatments OR all:long-term effects)"
+    ],
+    "total_papers_found": 50,
+    "search_duration": 20.370641231536865
+  },
+  "pre_filtering": {
+    "total_papers": 50,
+    "relevant_papers": 9,
+    "filtered_papers": 41,
+    "filtering_duration": 5.610066175460815
+  },
+  "pdf_processing": {
+    "papers_processed": [
+      {
+        "paper_id": "c690dc3e-b688-4ea3-88ba-a7686040f330",
+        "url": "https://arxiv.org/pdf/1703.03437v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-26T12:58:53.770676",
+        "processing_strategy": "Simple Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 4,
+        "processing_time": 34.39581847190857,
+        "status": "success"
+      },
+      {
+        "paper_id": "f85dc696-d36a-4403-a4a5-b74fd00f47d7",
+        "url": "https://arxiv.org/pdf/2504.13955v4",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-26T12:58:53.842418",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 18,
+        "processing_time": 114.54352927207947,
+        "status": "success"
+      },
+      {
+        "paper_id": "f0a80dc1-284e-4baf-a0f9-fdc698e8b4d8",
+        "url": "https://arxiv.org/pdf/2010.06078v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-26T12:58:54.703547",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 3,
+        "processing_time": 39.9674072265625,
+        "status": "success"
+      },
+      {
+        "paper_id": "166d8e1b-686b-4177-8e9d-28ea6499c700",
+        "url": "https://arxiv.org/pdf/2302.05312v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-26T12:58:54.952318",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 7,
+        "processing_time": 66.86575365066528,
+        "status": "success"
+      },
+      {
+        "paper_id": "50e2e37d-d407-4415-9efc-daeb521d4fc4",
+        "url": "https://arxiv.org/pdf/2411.10661v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-26T12:59:28.321490",
+        "processing_strategy": "Simple Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 3,
+        "processing_time": 25.893476009368896,
+        "status": "success"
+      },
+      {
+        "paper_id": "9aadc64e-e377-4ab4-ae25-b1abf4251027",
+        "url": "https://arxiv.org/pdf/2410.16507v2",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-26T12:59:34.782589",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 13,
+        "processing_time": 108.43909883499146,
+        "status": "success"
+      },
+      {
+        "paper_id": "4d1eb923-215f-40f0-8da8-fcec7a3f556d",
+        "url": "https://arxiv.org/pdf/2505.20796v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-26T12:59:54.315242",
+        "processing_strategy": "Simple Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 4,
+        "processing_time": 33.325618743896484,
+        "status": "success"
+      },
+      {
+        "paper_id": "b176430b-baf4-419d-a277-91cd5b74b4f8",
+        "url": "https://arxiv.org/pdf/2506.23992v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-26T13:00:02.032086",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 2,
+        "processing_time": 28.991801023483276,
+        "status": "success"
+      },
+      {
+        "paper_id": "6cc2d5bf-9e98-480e-bf51-9adb6936829e",
+        "url": "https://arxiv.org/pdf/2306.10338v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-26T13:00:27.764929",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 10,
+        "processing_time": 100.99005484580994,
+        "status": "success"
+      }
+    ],
+    "total_processing_time": 553.4125580787659,
+    "processing_strategy": {}
+  },
+  "note_extraction": {
+    "total_notes_extracted": 64,
+    "notes_per_paper": {
+      "c690dc3e-b688-4ea3-88ba-a7686040f330": 4,
+      "f0a80dc1-284e-4baf-a0f9-fdc698e8b4d8": 3,
+      "50e2e37d-d407-4415-9efc-daeb521d4fc4": 3,
+      "166d8e1b-686b-4177-8e9d-28ea6499c700": 7,
+      "4d1eb923-215f-40f0-8da8-fcec7a3f556d": 4,
+      "b176430b-baf4-419d-a277-91cd5b74b4f8": 2,
+      "f85dc696-d36a-4403-a4a5-b74fd00f47d7": 18,
+      "9aadc64e-e377-4ab4-ae25-b1abf4251027": 13,
+      "6cc2d5bf-9e98-480e-bf51-9adb6936829e": 10
+    },
+    "final_notes_returned": 64,
+    "notes_filtered_out": 0
+  },
+  "performance": {
+    "total_duration": 237.129293,
+    "bottlenecks": []
+  }
+}

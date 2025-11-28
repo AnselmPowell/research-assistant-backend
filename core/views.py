@@ -132,11 +132,34 @@ class SessionNotesView(APIView):
         and citation information.
         """
         session = get_object_or_404(ResearchSession, id=session_id)
+        
+        # DEBUG: Check what we actually have in the database
+        total_notes = Note.objects.filter(paper__session=session).count()
+        print(f"DEBUG SESSION {session_id}: TOTAL NOTES IN DATABASE: {total_notes}")
+        
+        total_papers = session.papers.count()
+        print(f"DEBUG SESSION {session_id}: TOTAL PAPERS IN SESSION: {total_papers}")
+        
+        # Check for orphaned notes (notes that exist but aren't linked properly)
+        orphaned_notes = Note.objects.filter(paper__session_id=session_id)
+        print(f"DEBUG SESSION {session_id}: DIRECT QUERY FOUND {orphaned_notes.count()} NOTES")
+        
         notes = []
         
         for paper in session.papers.all():
+            paper_note_count = paper.notes.count()
+            print(f"DEBUG SESSION {session_id}: Paper {paper.id} ({paper.title[:50]}...) has {paper_note_count} notes")
+            
             for note in paper.notes.all():
                 notes.append(note.to_frontend_format())
+        
+        print(f"DEBUG SESSION {session_id}: RETURNING {len(notes)} NOTES TO FRONTEND")
+        
+        # If we found no notes through relationships but direct query found notes, use direct query
+        if len(notes) == 0 and orphaned_notes.count() > 0:
+            print(f"DEBUG SESSION {session_id}: RELATIONSHIP BROKEN - Using direct query as fallback")
+            notes = [note.to_frontend_format() for note in orphaned_notes]
+            print(f"DEBUG SESSION {session_id}: FALLBACK RETURNED {len(notes)} NOTES")
         
         return Response(notes)
 

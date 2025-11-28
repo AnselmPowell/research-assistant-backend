@@ -113,6 +113,8 @@ class Note(models.Model):
     justification = models.TextField(blank=True)  # Added justification field
     inline_citations = models.JSONField(default=list)
     reference_list = models.JSONField(default=dict)
+    # AI relevance scoring
+    relevance_score = models.FloatField(null=True, blank=True, default=None)
     # User interaction fields
     flagged = models.BooleanField(default=False)  # For marking important notes
     favorite = models.BooleanField(default=False)  # For favorite notes
@@ -156,6 +158,7 @@ class Note(models.Model):
             "referenceList": self.reference_list,
             "matchesTopic": self.matches_topic,
             "justification": self.justification,  # Added justification field
+            "relevanceScore": self.relevance_score,  # Added relevance score field
             # Additional paper fields
             "authors": self.paper.authors,
             "year": self.paper.year,

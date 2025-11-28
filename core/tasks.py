@@ -168,7 +168,8 @@ def _process_paper_thread_safe(paper_id: str, search_terms: List[str], query_emb
                         matches_topic=note_data.get('matches_topic', ''),
                         justification=note_data.get('justification', ''),  # Added justification field
                         inline_citations=note_data.get('inline_citations', []),
-                        reference_list=note_data.get('reference_list', {})
+                        reference_list=note_data.get('reference_list', {}),
+                        relevance_score=note_data.get('relevance_score')  # Added relevance score field
                     )
                     notes_created += 1
             

@@ -106,26 +106,26 @@ database_url = os.environ.get('DATABASE_URL')
 # Configure database with dj-database-url
 if database_url:
     # Using Neon PostgreSQL
-    # DATABASES = {
-    #     'default': dj_database_url.config(
-    #         default=database_url,
-    #         conn_max_age=600,  # connection lifetime in seconds
-    #         conn_health_checks=True,  # enable connection health checks
-    #         ssl_require=True  # require SSL for Neon connection
-    #     )
-    # }
-
-    #  # Add SSL configuration for Neon
-    # DATABASES['default']['OPTIONS'] = {
-    #     'sslmode': 'require',
-    # }
-    
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
+        'default': dj_database_url.config(
+            default=database_url,
+            conn_max_age=600,  # connection lifetime in seconds
+            conn_health_checks=True,  # enable connection health checks
+            ssl_require=True  # require SSL for Neon connection
+        )
     }
+
+     # Add SSL configuration for Neon
+    DATABASES['default']['OPTIONS'] = {
+        'sslmode': 'require',
+    }
+    
+    # DATABASES = {
+    #     'default': {
+    #         'ENGINE': 'django.db.backends.sqlite3',
+    #         'NAME': BASE_DIR / 'db.sqlite3',
+    #     }
+    # }
    
     # Additional settings based on environment
     if IS_PRODUCTION:

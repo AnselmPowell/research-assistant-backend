@@ -1,0 +1,82 @@
+{
+  "session_info": {
+    "session_id": "7db7baf4-fe5e-4c3f-bef2-cef93e31545e",
+    "start_time": "2025-11-28T00:58:14.850699",
+    "topics": [],
+    "info_queries": [
+      "improving community sport",
+      "how to improve local sport in your area"
+    ],
+    "direct_urls": [
+      "https://arxiv.org/pdf/2307.04118.pdf"
+    ],
+    "is_url_only_search": true,
+    "end_time": "2025-11-28T00:58:35.731512"
+  },
+  "search_terms": {
+    "exact_phrases": [
+      "community sport",
+      "local sports improvement",
+      "sport development",
+      "community athletics"
+    ],
+    "title_terms": [
+      "community sport",
+      "local sport development",
+      "sport initiatives",
+      "community engagement"
+    ],
+    "abstract_terms": [
+      "community",
+      "sport"
+    ],
+    "general_terms": [
+      "local sports",
+      "community engagement",
+      "sport initiatives"
+    ]
+  },
+  "arxiv_search": {
+    "queries_generated": [],
+    "total_papers_found": 0,
+    "search_duration": 0.0
+  },
+  "pre_filtering": {
+    "total_papers": 1,
+    "relevant_papers": 1,
+    "filtered_papers": 0,
+    "filtering_duration": 0.00017762184143066406
+  },
+  "pdf_processing": {
+    "papers_processed": [
+      {
+        "paper_id": "e1f0285e-bb7d-4e75-9529-74959304bde0",
+        "url": "https://arxiv.org/pdf/2307.04118.pdf",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-28T00:58:21.650825",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 13.816417932510376,
+        "status": "success"
+      }
+    ],
+    "total_processing_time": 13.816417932510376,
+    "processing_strategy": {}
+  },
+  "note_extraction": {
+    "total_notes_extracted": 0,
+    "notes_per_paper": {
+      "e1f0285e-bb7d-4e75-9529-74959304bde0": 0
+    },
+    "final_notes_returned": 0,
+    "notes_filtered_out": 0
+  },
+  "performance": {
+    "total_duration": 20.880813,
+    "bottlenecks": []
+  }
+}

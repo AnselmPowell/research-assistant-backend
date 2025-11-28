@@ -1,0 +1,87 @@
+{
+  "session_info": {
+    "session_id": "03994dae-4b4a-446b-b65d-31472cb26dca",
+    "start_time": "2025-11-28T01:08:55.398839",
+    "topics": [],
+    "info_queries": [
+      "improving community sport",
+      "how to improve local sport in your area",
+      "how to make sure your club keep running",
+      "any information on community habits"
+    ],
+    "direct_urls": [
+      "https://arxiv.org/pdf/2307.04118.pdf"
+    ],
+    "is_url_only_search": true,
+    "end_time": "2025-11-28T01:09:23.241869"
+  },
+  "search_terms": {
+    "exact_phrases": [
+      "community sport",
+      "local sport",
+      "sport improvement",
+      "club sustainability",
+      "community habits"
+    ],
+    "title_terms": [
+      "community sport",
+      "local sports development",
+      "sport club management",
+      "sport participation",
+      "community engagement"
+    ],
+    "abstract_terms": [
+      "sport",
+      "community"
+    ],
+    "general_terms": [
+      "community development",
+      "sport management",
+      "local engagement",
+      "club sustainability"
+    ]
+  },
+  "arxiv_search": {
+    "queries_generated": [],
+    "total_papers_found": 0,
+    "search_duration": 0.0
+  },
+  "pre_filtering": {
+    "total_papers": 1,
+    "relevant_papers": 1,
+    "filtered_papers": 0,
+    "filtering_duration": 0.003603219985961914
+  },
+  "pdf_processing": {
+    "papers_processed": [
+      {
+        "paper_id": "dbc48574-3eb4-44e5-b4be-14c649d9705f",
+        "url": "https://arxiv.org/pdf/2307.04118.pdf",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-28T01:09:04.447404",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 18.4205265045166,
+        "status": "success"
+      }
+    ],
+    "total_processing_time": 18.4205265045166,
+    "processing_strategy": {}
+  },
+  "note_extraction": {
+    "total_notes_extracted": 0,
+    "notes_per_paper": {
+      "dbc48574-3eb4-44e5-b4be-14c649d9705f": 0
+    },
+    "final_notes_returned": 0,
+    "notes_filtered_out": 0
+  },
+  "performance": {
+    "total_duration": 27.84303,
+    "bottlenecks": []
+  }
+}

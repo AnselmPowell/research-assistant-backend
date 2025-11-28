@@ -1,0 +1,126 @@
+{
+  "session_info": {
+    "session_id": "d18b57f7-e208-4610-a8b8-970b1e57ded3",
+    "start_time": "2025-11-27T16:56:12.302578",
+    "topics": [
+      "sports psychology"
+    ],
+    "info_queries": [
+      "what is sports psychology"
+    ],
+    "direct_urls": [],
+    "is_url_only_search": false,
+    "end_time": "2025-11-27T17:01:33.883257"
+  },
+  "search_terms": {
+    "exact_phrases": [
+      "sports psychology",
+      "athlete psychology",
+      "performance psychology"
+    ],
+    "title_terms": [
+      "sports psychology"
+    ],
+    "abstract_terms": [
+      "psychology"
+    ],
+    "general_terms": [
+      "sports mental",
+      "psychology in sports"
+    ]
+  },
+  "arxiv_search": {
+    "queries_generated": [
+      "all:\"sports psychology\"",
+      "all:\"athlete psychology\"",
+      "ti:sports psychology",
+      "abs:psychology",
+      "(all:sports mental OR all:psychology in sports)"
+    ],
+    "total_papers_found": 25,
+    "search_duration": 199.59635210037231
+  },
+  "pre_filtering": {
+    "total_papers": 25,
+    "relevant_papers": 4,
+    "filtered_papers": 21,
+    "filtering_duration": 4.088574409484863
+  },
+  "pdf_processing": {
+    "papers_processed": [
+      {
+        "paper_id": "0f1dc9a2-681b-492e-9972-4ff93bdb7ef5",
+        "url": "https://arxiv.org/pdf/2509.22111v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-27T16:59:44.001375",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 6,
+        "processing_time": 76.56754207611084,
+        "status": "success"
+      },
+      {
+        "paper_id": "18211b60-4bf9-4048-8444-e612bb9fbc7a",
+        "url": "https://arxiv.org/pdf/2303.00285v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-27T16:59:44.044614",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 9,
+        "processing_time": 109.58039879798889,
+        "status": "success"
+      },
+      {
+        "paper_id": "60479b2d-bfa4-4706-91c9-e386bb151f71",
+        "url": "https://arxiv.org/pdf/2409.12970v2",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-27T16:59:44.066587",
+        "processing_strategy": "Simple Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 4.125412940979004,
+        "status": "error"
+      },
+      {
+        "paper_id": "972da3f4-276e-4cfd-9705-608cfe10ad1c",
+        "url": "https://arxiv.org/pdf/2412.05816v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-27T16:59:44.096793",
+        "processing_strategy": "Simple Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 3,
+        "processing_time": 24.02103328704834,
+        "status": "success"
+      }
+    ],
+    "total_processing_time": 214.29438710212708,
+    "processing_strategy": {}
+  },
+  "note_extraction": {
+    "total_notes_extracted": 18,
+    "notes_per_paper": {
+      "60479b2d-bfa4-4706-91c9-e386bb151f71": 0,
+      "972da3f4-276e-4cfd-9705-608cfe10ad1c": 3,
+      "0f1dc9a2-681b-492e-9972-4ff93bdb7ef5": 6,
+      "18211b60-4bf9-4048-8444-e612bb9fbc7a": 9
+    },
+    "final_notes_returned": 18,
+    "notes_filtered_out": 0
+  },
+  "performance": {
+    "total_duration": 321.580679,
+    "bottlenecks": []
+  }
+}
