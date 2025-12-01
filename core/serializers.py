@@ -88,17 +88,17 @@ class GroupSerializer(serializers.ModelSerializer):
 class NoteOrganizationSerializer(serializers.Serializer):
     """Serializer for updating note organization."""
     projects = serializers.ListField(
-        child=serializers.UUIDField(allow_null=True),
+        child=serializers.CharField(allow_null=True),
         required=True,
         allow_empty=True
     )
     sections = serializers.ListField(
-        child=serializers.UUIDField(allow_null=True),
+        child=serializers.CharField(allow_null=True),
         required=True,
         allow_empty=True
     )
     groups = serializers.ListField(
-        child=serializers.UUIDField(allow_null=True),
+        child=serializers.CharField(allow_null=True),
         required=True,
         allow_empty=True
     )
