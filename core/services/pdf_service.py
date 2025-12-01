@@ -352,7 +352,7 @@ Remember: Academic papers are full of useful information even if they don't prov
         
         debug_print(f"Extracted {len(extracted_items)} items from text")
         if len(extracted_items) == 0:
-            debug_print("WARNING: LLM returned empty list - check if prompt is too restrictive")
+            debug_print("WARNING: LLM returned empty list")
         
         return extracted_items
     
