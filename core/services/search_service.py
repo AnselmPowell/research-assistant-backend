@@ -160,11 +160,12 @@ KEY SUCCESS FACTORS:
             """
     
     # Create enhanced user prompt
+    newline_char = '\n'
     user_prompt = f"""
     RESEARCH TOPICS: {', '.join(topics)}
     
     SPECIFIC RESEARCH QUESTIONS:
-    {'\n'.join([f'- {q}' for q in queries])}
+    {newline_char.join([f'- {q}' for q in queries])}
     
     Based on this research Topic and Questions provide by the User, generate optimized and highly relevant search terms  for finding academic papers on arXiv.
     IMPORTANT: You must first take time to understand the main research subject and key words and make sure that those words are at the front of the search terms.
