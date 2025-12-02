@@ -20,6 +20,7 @@ from .services.llm_service import LLM
 from .services.search_service import generate_search_questions, generate_structured_search_terms, search_arxiv_with_structured_queries
 from .services.embedding_service import get_embedding
 from .services.pdf_service import process_pdf
+from .utils.debug import debug_print
 
 
 # Configure logging
@@ -44,7 +45,7 @@ def send_status_update(session_id: str, status: str, message: str = None):
                 }
             }
         )
-        print(f"Sent status update for session {session_id}: {status}")
+        debug_print(f"Sent status update for session {session_id}: {status}")
     except Exception as e:
         logger.error(f"Error sending status update: {e}")
         # Continue execution even if WebSocket update fails
@@ -65,7 +66,7 @@ def send_paper_update(session_id: str, paper_data: Dict[str, Any]):
                 'data': paper_data
             }
         )
-        print(f"Sent paper update for session {session_id}: Paper ID {paper_data.get('paper_id')}")
+        debug_print(f"Sent paper update for session {session_id}: Paper ID {paper_data.get('paper_id')}")
     except Exception as e:
         logger.error(f"Error sending paper update: {e}")
         # Continue execution even if WebSocket update fails
@@ -103,7 +104,7 @@ def _process_paper_thread_safe(paper_id: str, search_terms: List[str], query_emb
         # Update status
         paper.status = 'processing'
         paper.save()
-        print(f"Started processing paper {paper.id}: {paper.url}")
+        debug_print(f"Started processing paper {paper.id}: {paper.url}")
         
         # Log PDF processing start for monitoring
         if monitor:
@@ -157,7 +158,7 @@ def _process_paper_thread_safe(paper_id: str, search_terms: List[str], query_emb
                     if 'justification' not in note_data:
                         default_justification = f"This information relates to the search query '{note_data.get('search_criteria', 'unknown')}' and provides relevant details about {note_data.get('matches_topic', 'the topic')}."
                         note_data['justification'] = default_justification
-                        print(f"Added missing justification during note creation: {default_justification}")
+                        debug_print(f"Added missing justification during note creation: {default_justification}")
                     
                     Note.objects.create(
                         paper=paper,
@@ -203,7 +204,7 @@ def _process_paper_thread_safe(paper_id: str, search_terms: List[str], query_emb
         except Exception as e:
             logger.error(f"Error sending paper update: {e}")
         
-        print(f"Completed processing paper {paper.id}")
+        debug_print(f"Completed processing paper {paper.id}")
         return {
             "paper_id": paper_id,
             "status": result.get('status', 'error'),
@@ -249,18 +250,18 @@ def _process_research_session_thread(session_id: str, settings_data=None):
         # Update session status
         session.status = 'searching'
         session.save()
-        print(f"Started processing session {session_id}")
+        debug_print(f"Started processing session {session_id}")
         
         # Initialize LLM
         llm = LLM()
 
         # Debug URLs and topics
-        print(f"DEBUG - Session topics: {session.topics}")
-        print(f"DEBUG - Session direct URLs: {session.direct_urls}")
+        debug_print(f"DEBUG - Session topics: {session.topics}")
+        debug_print(f"DEBUG - Session direct URLs: {session.direct_urls}")
         
         # Check if this is a URL-only search (no topics)
         is_url_only_search = len(session.topics) == 0 and len(session.direct_urls) > 0
-        print(f"DEBUG - is_url_only_search: {is_url_only_search}")
+        debug_print(f"DEBUG - is_url_only_search: {is_url_only_search}")
         # Initialize LLM
         llm = LLM()
 
@@ -272,7 +273,7 @@ def _process_research_session_thread(session_id: str, settings_data=None):
 
         # Handle URL-only searches more efficiently
         if is_url_only_search:
-            print(f"URL-only search detected with {len(direct_urls)} direct URLs, skipping ArXiv search")
+            debug_print(f"URL-only search detected with {len(direct_urls)} direct URLs, skipping ArXiv search")
             
             # Send notification about URL-only mode
             send_status_update(
@@ -303,14 +304,14 @@ def _process_research_session_thread(session_id: str, settings_data=None):
             search_structure = generate_structured_search_terms(llm, session.topics, session.info_queries)
             monitor.log_structured_search_terms(search_structure)
             
-            print(f"Generated search structure with {len(search_structure.get('exact_phrases', []))} exact phrases, "
+            debug_print(f"Generated search structure with {len(search_structure.get('exact_phrases', []))} exact phrases, "
                 f"{len(search_structure.get('title_terms', []))} title terms, "
                 f"{len(search_structure.get('abstract_terms', []))} abstract terms, and "
                 f"{len(search_structure.get('general_terms', []))} general terms")
             
             # Generate expanded questions for embedding creation
             expanded_questions, explanation = generate_search_questions(llm, session.topics, session.info_queries)
-            print(f"Generated expanded questions: {expanded_questions}")
+            debug_print(f"Generated expanded questions: {expanded_questions}")
             
             # Get query embedding for PDF processing
             query_embedding = get_embedding(" ".join(expanded_questions))
@@ -338,7 +339,7 @@ def _process_research_session_thread(session_id: str, settings_data=None):
                 arxiv_search_duration
             )
             
-            print(f"Found {len(arxiv_urls)} papers from arXiv search using structured queries (including original topics/queries)")
+            debug_print(f"Found {len(arxiv_urls)} papers from arXiv search using structured queries (including original topics/queries)")
             
             # Combine URLs, prioritizing direct URLs
             all_candidate_urls = direct_urls + [url for url in arxiv_urls if url not in direct_urls]
@@ -346,7 +347,7 @@ def _process_research_session_thread(session_id: str, settings_data=None):
         if not all_candidate_urls:
             session.status = 'completed'
             session.save()
-            print(f"No papers found for session {session_id}, marking as complete")
+            debug_print(f"No papers found for session {session_id}, marking as complete")
             return
             
         # Try to get the maxSources setting from the passed settings_data
@@ -362,8 +363,8 @@ def _process_research_session_thread(session_id: str, settings_data=None):
             max_urls = 30  # Default fallback
 
         max_urls = 200
-        print("max_urls, ", max_urls)
-        print("len(all_candidate_urls), ", len(all_candidate_urls))
+        debug_print("max_urls, ", max_urls)
+        debug_print("len(all_candidate_urls), ", len(all_candidate_urls))
     
         # Apply URL limit if specified
         if len(all_candidate_urls) > max_urls:
@@ -379,10 +380,10 @@ def _process_research_session_thread(session_id: str, settings_data=None):
                 arxiv_selection = [url for url in all_candidate_urls if url not in direct_urls][:arxiv_to_include]
                 selected_urls = direct_urls + arxiv_selection
             
-            print(f"Limited URLs from {len(all_candidate_urls)} to {len(selected_urls)} based on maxSources setting")
+            debug_print(f"Limited URLs from {len(all_candidate_urls)} to {len(selected_urls)} based on maxSources setting")
         else:
             selected_urls = all_candidate_urls
-            print(f"Using all {len(selected_urls)} candidate URLs")
+            debug_print(f"Using all {len(selected_urls)} candidate URLs")
 
 
 
@@ -396,7 +397,7 @@ def _process_research_session_thread(session_id: str, settings_data=None):
             
             # For URL-only mode, skip pre-filtering
             if is_url_only_search:
-                print(f"URL-only mode with {len(all_candidate_urls)} URLs - skipping pre-filtering")
+                debug_print(f"URL-only mode with {len(all_candidate_urls)} URLs - skipping pre-filtering")
                 relevant_urls = all_candidate_urls
                 
                 # Monitor URL-only filtering (no actual filtering)
@@ -420,11 +421,11 @@ def _process_research_session_thread(session_id: str, settings_data=None):
                 )
                 
                 filter_duration = time.time() - filter_start_time
-                print(f"Pre-filtering results: {filter_result}")
+                debug_print(f"Pre-filtering results: {filter_result}")
                 
                 # Update with filter results
                 if filter_result.get('success'):
-                    print(f"Pre-filtering completed: {filter_result.get('papers_relevant', 0)} relevant, "
+                    debug_print(f"Pre-filtering completed: {filter_result.get('papers_relevant', 0)} relevant, "
                         f"{filter_result.get('papers_filtered', 0)} filtered out")
                     
                     # Monitor pre-filtering results
@@ -447,12 +448,12 @@ def _process_research_session_thread(session_id: str, settings_data=None):
                     relevant_urls = filter_result.get('relevant_urls', all_candidate_urls)
                 else:
                     logger.warning(f"Pre-filtering failed: {filter_result.get('message', 'Unknown error')}")
-                    print(f"Pre-filtering failed: {filter_result.get('message', 'Unknown error')}")
+                    debug_print(f"Pre-filtering failed: {filter_result.get('message', 'Unknown error')}")
                     # Use all selected URLs if filtering failed
                     relevant_urls = all_candidate_urls
         except Exception as e:
             logger.error(f"Error during pre-filtering: {e}")
-            print(f"Error during pre-filtering: {e}")
+            debug_print(f"Error during pre-filtering: {e}")
             # Continue with all selected URLs if pre-filtering fails
             relevant_urls = all_candidate_urls
         
@@ -470,12 +471,12 @@ def _process_research_session_thread(session_id: str, settings_data=None):
         # Update session status
         session.status = 'processing'
         session.save()
-        print(f"Created {len(papers)} paper objects from relevant URLs, proceeding to processing")
+        debug_print(f"Created {len(papers)} paper objects from relevant URLs, proceeding to processing")
         
         # Get maximum number of workers from settings
         # Reduced to 1 to prevent arXiv rate limiting
         max_workers = 4  # Changed from getattr(settings, 'MAX_WORKERS', 6)
-        print(f"Using {max_workers} workers for parallel paper processing")
+        debug_print(f"Using {max_workers} workers for parallel paper processing")
         
         # Process papers with the thread pool
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -485,7 +486,7 @@ def _process_research_session_thread(session_id: str, settings_data=None):
                 status='pending'
             )
             
-            print(f"Processing {pending_papers.count()} papers")
+            debug_print(f"Processing {pending_papers.count()} papers")
             search_terms = session.topics + additional_search_terms
             # Submit all pending papers to the thread pool
             future_to_paper = {
@@ -543,7 +544,7 @@ def _process_research_session_thread(session_id: str, settings_data=None):
                 f"Research completed. Found {summary['total_notes']} notes from {summary['papers_with_notes']} papers. "
             )
             
-            print(f"All papers processed, session {session_id} marked as complete")
+            debug_print(f"All papers processed, session {session_id} marked as complete")
         else:
             logger.warning(f"Session {session_id} has incomplete papers: {completed_papers}/{total_papers} completed")
         
@@ -553,7 +554,7 @@ def _process_research_session_thread(session_id: str, settings_data=None):
             session = ResearchSession.objects.get(id=session_id)
             session.status = 'error'
             session.save()
-            print(f"Session {session_id} marked as error due to exception")
+            debug_print(f"Session {session_id} marked as error due to exception")
         except:
             logger.error(f"Failed to update session {session_id} status after error")
     finally:

@@ -13,17 +13,11 @@ import re
 import arxiv as arxiv_pkg
 from typing import List, Dict, Any
 from .llm_service import LLM
+from ..utils.debug import debug_print
+
 
 # Configure logging
 logger = logging.getLogger(__name__)
-
-# Enable debug printing
-DEBUG_PRINT = True
-
-def debug_print(message):
-    """Print debug information if DEBUG_PRINT is enabled."""
-    if DEBUG_PRINT:
-        print(f"[SEARCH] {message}")
 
 def clean_abstract(abstract: str) -> str:
     """Clean and format abstract text (from Method 2)."""

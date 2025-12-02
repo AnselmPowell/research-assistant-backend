@@ -8,6 +8,8 @@ import numpy as np
 from openai import OpenAI
 from django.conf import settings
 from typing import List, Dict, Any
+from ..utils.debug import debug_print
+
 
 # Google Gemini embeddings imports
 try:
@@ -20,13 +22,6 @@ except ImportError:
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# Enable debug printing
-DEBUG_PRINT = False
-
-def debug_print(message):
-    """Print debug information if DEBUG_PRINT is enabled."""
-    if DEBUG_PRINT:
-        print(f"[EMBEDDING] {message}")
 
 def get_embedding(text: str) -> List[float]:
     """Generate an embedding for the given text."""
@@ -169,7 +164,7 @@ def validate_note_relevance(notes, expanded_questions, explanation, threshold=0.
     
     # Create the user intent text by combining expanded questions and explanation
     user_intent_text = " ".join(expanded_questions) + " / " + explanation
-    print(f"Generated user intent text: '{user_intent_text[:500]}...'")
+    debug_print(f"Generated user intent text: '{user_intent_text[:500]}...'")
     
     # Get embedding for user intent
     intent_embedding = get_embedding(user_intent_text)
@@ -184,20 +179,20 @@ def validate_note_relevance(notes, expanded_questions, explanation, threshold=0.
         
         # Calculate similarity
         similarity = calculate_similarity(intent_embedding, note_embedding)
-        print(f"Note similarity: {similarity:.4f} for note: '{note['content'][:5000]}...'")
+        debug_print(f"Note similarity: {similarity:.4f} for note: '{note['content'][:5000]}...'")
        
        
         # Apply threshold
         if similarity >= threshold:
             note['relevance_score'] = float(similarity)
             validated_notes.append(note)
-            print(f"Note PASSED with score {similarity:.4f}")
+            debug_print(f"Note PASSED with score {similarity:.4f}")
         else:
             note['relevance_score'] = float(similarity)
             filtered_notes.append(note)
-            print(f"Note FILTERED with score {similarity:.4f}")
+            debug_print(f"Note FILTERED with score {similarity:.4f}")
     
-    print(f"Validation complete: {len(validated_notes)} notes passed, {len(filtered_notes)} filtered")
+    debug_print(f"Validation complete: {len(validated_notes)} notes passed, {len(filtered_notes)} filtered")
     return validated_notes, filtered_notes
 
 # Google Gemini Embeddings Functions

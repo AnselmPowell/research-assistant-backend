@@ -17,6 +17,7 @@ from .views import (
     BulkNoteStatusUpdateView,
     BulkNoteDeleteView,
     ValidatePdfUrlView,
+    HealthCheckView,
     # Organization views
     ProjectListCreateView,
     ProjectDetailView,
@@ -28,6 +29,9 @@ from .views import (
 )
 
 urlpatterns = [
+    # Health check endpoint
+    path('health/', HealthCheckView.as_view(), name='health_check'),
+    
     # Research session endpoints
     path('research/start/', StartResearchView.as_view(), name='start_research'),
     path('research/session/<str:session_id>/', SessionDetailView.as_view(), name='session_detail'),

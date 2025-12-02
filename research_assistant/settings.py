@@ -24,14 +24,16 @@ DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 # Define allowed hosts based on environment
 if IS_PRODUCTION:
-    # In production, only allow specific domains
-    ALLOWED_HOSTS = [
-        'your-domain.com',  # Update with your actual domain
-        'api.your-domain.com',  # Update with your API domain if different
-        'www.your-domain.com',  # Include www subdomain if needed
-    ]
-    # Add Render internal hosts if using Render
+    # In production, use environment variables for allowed hosts
+    ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
+    # Clean up any empty strings from splitting
+    ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS if host.strip()]
+    
+    # Add Railway/Render internal hosts
+    RAILWAY_STATIC_URL = os.environ.get('RAILWAY_STATIC_URL')
     RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+    if RAILWAY_STATIC_URL:
+        ALLOWED_HOSTS.append(RAILWAY_STATIC_URL.replace('https://', '').replace('http://', ''))
     if RENDER_EXTERNAL_HOSTNAME:
         ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 else:
@@ -219,11 +221,9 @@ if IS_PRODUCTION:
 
 # CORS settings
 if IS_PRODUCTION:
-    # In production, only allow specific origins
-    CORS_ALLOWED_ORIGINS = [
-        "https://your-domain.com",  # Update with your actual domain
-        "https://www.your-domain.com",  # Include www subdomain if needed
-    ]
+    # In production, use environment variables for CORS origins
+    cors_origins = os.environ.get('CORS_ORIGINS', '')
+    CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',') if origin.strip()]
     CORS_ALLOW_ALL_ORIGINS = False
 else:
     # In development, allow localhost origins
@@ -256,6 +256,7 @@ CORS_ALLOW_HEADERS = [
 
 # API Keys
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', '')
 
 # Pydantic-AI configuration
 PYDANTIC_AI_CONFIG = {
@@ -345,3 +346,46 @@ else:
             'BACKEND': 'channels.layers.InMemoryChannelLayer',
         },
     }
+
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose' if IS_PRODUCTION else 'simple',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO' if IS_PRODUCTION else 'DEBUG',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'core': {
+            'handlers': ['console'],
+            'level': 'INFO' if IS_PRODUCTION else 'DEBUG',
+            'propagate': False,
+        },
+        'auth_api': {
+            'handlers': ['console'],
+            'level': 'INFO' if IS_PRODUCTION else 'DEBUG',
+            'propagate': False,
+        },
+    },
+}

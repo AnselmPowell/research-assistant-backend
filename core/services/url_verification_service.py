@@ -9,6 +9,7 @@ import requests
 import xml.etree.ElementTree as ET
 import traceback
 from .llm_service import LLM
+from ..utils.debug import debug_print
 
 logger = logging.getLogger(__name__)
 
@@ -116,9 +117,9 @@ def verify_urls_with_llm(search_terms, topics, urls, max_urls=None):
     """
     try:
         # First, get metadata for all URLs
-        print(f"Getting metadata for {len(urls)} URLs")
+        debug_print(f"Getting metadata for {len(urls)} URLs")
         url_metadata = get_metadata_for_urls(urls)
-        print(f"Successfully retrieved metadata for {len(url_metadata)} URLs")
+        debug_print(f"Successfully retrieved metadata for {len(url_metadata)} URLs")
         
         llm = LLM(model="openai:gpt-4o")
         
@@ -131,7 +132,7 @@ def verify_urls_with_llm(search_terms, topics, urls, max_urls=None):
             url_list += f"SUMMARY: {item['summary']}\n\n"
             url_list += f"###########################\n\n"
         
-        print(f"Prepared metadata for {len(url_metadata)} papers for LLM verification")
+        debug_print(f"Prepared metadata for {len(url_metadata)} papers for LLM verification")
         
         # Prepare the system prompt with multiple warnings about empty results
         system_prompt = f"""
@@ -156,12 +157,12 @@ def verify_urls_with_llm(search_terms, topics, urls, max_urls=None):
         # Add user-specified max_urls constraint if provided
         if max_urls:
             system_prompt += f"\nSelect a maximum of {max_urls} most relevant URLs."
-            print(f"Limiting results to {max_urls} URLs")
+            debug_print(f"Limiting results to {max_urls} URLs")
         
         # Create the prompt
         prompt = f"Papers to evaluate:\n\n{url_list}"
         
-        print("Sending prompt to LLM for URL verification")
+        debug_print("Sending prompt to LLM for URL verification")
         
         # Define the schema for structured output
         output_schema = {
@@ -174,37 +175,37 @@ def verify_urls_with_llm(search_terms, topics, urls, max_urls=None):
         }
         
         # Use structured_output instead of complete
-        print("Using structured_output to get a proper JSON response")
+        debug_print("Using structured_output to get a proper JSON response")
         result = llm.structured_output(prompt, output_schema, system_prompt)
         
         # The result should already be a list of URLs
-        print(f"Received structured response from LLM: {result}")
+        debug_print(f"Received structured response from LLM: {result}")
         
         # Check if we got a valid list of URLs
         if isinstance(result, list):
-            print(f"LLM returned {len(result)} relevant URLs")
+            debug_print(f"LLM returned {len(result)} relevant URLs")
             return result
         elif isinstance(result, dict) and "error" in result:
             # Handle error case
-            print(f"Error in LLM structured output: {result['error']}")
+            debug_print(f"Error in LLM structured output: {result['error']}")
             logger.error(f"LLM structured output error: {result['error']}")
             
             # Fallback: return all URLs if LLM verification fails
-            print("LLM verification failed, falling back to all URLs")
+            debug_print("LLM verification failed, falling back to all URLs")
             return urls
         else:
             # Unexpected response format
-            print(f"Unexpected response format from LLM: {type(result)}")
+            debug_print(f"Unexpected response format from LLM: {type(result)}")
             logger.error(f"Unexpected response format from LLM: {type(result)}")
             
             # Fallback: return all URLs if LLM verification fails
-            print("LLM verification failed, falling back to all URLs")
+            debug_print("LLM verification failed, falling back to all URLs")
             return urls
         
     except Exception as e:
         logger.error(f"Error in URL verification: {e}")
-        print(f"Exception in URL verification: {str(e)}")
+        debug_print(f"Exception in URL verification: {str(e)}")
         traceback_str = traceback.format_exc()
-        print(f"Traceback: {traceback_str}")
+        debug_print(f"Traceback: {traceback_str}")
         # Fallback: return all URLs if verification fails
         return urls

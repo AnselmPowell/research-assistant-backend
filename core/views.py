@@ -13,6 +13,9 @@ import requests
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.http import JsonResponse
+from django.views import View
+from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from .models import ResearchSession, Paper, Note, Project, Section, Group
 from .serializers import (
@@ -25,6 +28,7 @@ from .serializers import (
 )
 from .tasks import process_research_session
 import PyPDF2
+from .utils.debug import debug_print
 
 class StartResearchView(APIView):
     """View for starting a research session."""
@@ -135,31 +139,31 @@ class SessionNotesView(APIView):
         
         # DEBUG: Check what we actually have in the database
         total_notes = Note.objects.filter(paper__session=session).count()
-        print(f"DEBUG SESSION {session_id}: TOTAL NOTES IN DATABASE: {total_notes}")
+        debug_print(f"DEBUG SESSION {session_id}: TOTAL NOTES IN DATABASE: {total_notes}")
         
         total_papers = session.papers.count()
-        print(f"DEBUG SESSION {session_id}: TOTAL PAPERS IN SESSION: {total_papers}")
+        debug_print(f"DEBUG SESSION {session_id}: TOTAL PAPERS IN SESSION: {total_papers}")
         
         # Check for orphaned notes (notes that exist but aren't linked properly)
         orphaned_notes = Note.objects.filter(paper__session_id=session_id)
-        print(f"DEBUG SESSION {session_id}: DIRECT QUERY FOUND {orphaned_notes.count()} NOTES")
+        debug_print(f"DEBUG SESSION {session_id}: DIRECT QUERY FOUND {orphaned_notes.count()} NOTES")
         
         notes = []
         
         for paper in session.papers.all():
             paper_note_count = paper.notes.count()
-            print(f"DEBUG SESSION {session_id}: Paper {paper.id} ({paper.title[:50]}...) has {paper_note_count} notes")
+            debug_print(f"DEBUG SESSION {session_id}: Paper {paper.id} ({paper.title[:50]}...) has {paper_note_count} notes")
             
             for note in paper.notes.all():
                 notes.append(note.to_frontend_format())
         
-        print(f"DEBUG SESSION {session_id}: RETURNING {len(notes)} NOTES TO FRONTEND")
+        debug_print(f"DEBUG SESSION {session_id}: RETURNING {len(notes)} NOTES TO FRONTEND")
         
         # If we found no notes through relationships but direct query found notes, use direct query
         if len(notes) == 0 and orphaned_notes.count() > 0:
-            print(f"DEBUG SESSION {session_id}: RELATIONSHIP BROKEN - Using direct query as fallback")
+            debug_print(f"DEBUG SESSION {session_id}: RELATIONSHIP BROKEN - Using direct query as fallback")
             notes = [note.to_frontend_format() for note in orphaned_notes]
-            print(f"DEBUG SESSION {session_id}: FALLBACK RETURNED {len(notes)} NOTES")
+            debug_print(f"DEBUG SESSION {session_id}: FALLBACK RETURNED {len(notes)} NOTES")
         
         return Response(notes)
 
@@ -326,7 +330,7 @@ class UpdateNoteContentView(APIView):
                 else:
                     # Handle the case where the model doesn't have the field yet
                     # This provides flexibility as we enhance the Note model
-                    print(f"Field {model_field} not found on Note model - skipping")
+                    debug_print(f"Field {model_field} not found on Note model - skipping")
         
         note.save()
         
@@ -598,18 +602,18 @@ class GroupCreateView(APIView):
                         group_id = uuid.UUID(group_id)
                     except ValueError:
                         # If it's not a valid UUID string, generate a new one
-                        print(f"Invalid UUID format: {group_id}, generating new UUID")
+                        debug_print(f"Invalid UUID format: {group_id}, generating new UUID")
                         group_id = uuid.uuid4()
                 
                 # Create the group with the specified ID and user
                 group = serializer.save(id=group_id, user=user)
-                print(f"Group created with ID: {group.id}, Name: {group.name}")
+                debug_print(f"Group created with ID: {group.id}, Name: {group.name}")
                 return Response(group.to_dict(), status=status.HTTP_201_CREATED)
             except Exception as e:
-                print(f"Error creating group: {e}")
+                debug_print(f"Error creating group: {e}")
                 # If there was an error with the custom ID, fall back to default behavior
                 group = serializer.save(user=user)
-                print(f"Group created with generated ID: {group.id}")
+                debug_print(f"Group created with generated ID: {group.id}")
                 return Response(group.to_dict(), status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -674,56 +678,56 @@ class NoteOrganizationView(APIView):
         serializer = NoteOrganizationSerializer(data=request.data)
         
         if serializer.is_valid():
-            print(f"Note organization update for note {note_id}")
-            print(f"Full request data: {request.data}")
+            debug_print(f"Note organization update for note {note_id}")
+            debug_print(f"Full request data: {request.data}")
             
             # Always check all organization types
             # Even if not in the request data, we should clear the relationships
             
             # Projects
             project_ids = serializer.validated_data.get('projects', [])
-            print(f"Updating note projects: {project_ids}")
+            debug_print(f"Updating note projects: {project_ids}")
             note.projects.clear()
             for project_id in project_ids:
                 try:
                     project = Project.objects.get(id=project_id)
                     note.projects.add(project)
-                    print(f"Added note to project: {project.id} - {project.name}")
+                    debug_print(f"Added note to project: {project.id} - {project.name}")
                 except Project.DoesNotExist:
-                    print(f"Project not found: {project_id}")
+                    debug_print(f"Project not found: {project_id}")
                     pass  # Skip invalid IDs
             
             # Sections
             section_ids = serializer.validated_data.get('sections', [])
-            print(f"Updating note sections: {section_ids}")
+            debug_print(f"Updating note sections: {section_ids}")
             note.sections.clear()
             
             # Normal section assignment - even if empty
             for section_id in section_ids:
                 # Skip virtual 'uncategorized' section - it's not a real DB entity
                 if section_id == 'uncategorized':
-                    print("Skipping virtual 'uncategorized' section")
+                    debug_print("Skipping virtual 'uncategorized' section")
                     continue
                     
                 try:
                     section = Section.objects.get(id=section_id)
                     note.sections.add(section)
-                    print(f"Added note to section: {section.id} - {section.name}")
+                    debug_print(f"Added note to section: {section.id} - {section.name}")
                 except Section.DoesNotExist:
-                    print(f"Section not found: {section_id}")
+                    debug_print(f"Section not found: {section_id}")
                     pass  # Skip invalid IDs
             
             # Groups
             group_ids = serializer.validated_data.get('groups', [])
-            print(f"Updating note groups: {group_ids}")
+            debug_print(f"Updating note groups: {group_ids}")
             note.groups.clear()
             for group_id in group_ids:
                 try:
                     group = Group.objects.get(id=group_id)
                     note.groups.add(group)
-                    print(f"Added note to group: {group.id} - {group.name}")
+                    debug_print(f"Added note to group: {group.id} - {group.name}")
                 except Group.DoesNotExist:
-                    print(f"Group not found: {group_id}")
+                    debug_print(f"Group not found: {group_id}")
                     pass  # Skip invalid IDs
             
             return Response(note.to_frontend_format())
@@ -845,14 +849,14 @@ class ValidatePdfUrlView(APIView):
     
     def post(self, request, format=None):
         """Validate if a URL points to a downloadable PDF and extract title if possible."""
-        print("ValidatePdfUrlView.post called")
+        debug_print("ValidatePdfUrlView.post called")
         
         url = request.data.get('url')
-        print(f"Request data: {request.data}")
-        print(f"URL to validate: {url}")
+        debug_print(f"Request data: {request.data}")
+        debug_print(f"URL to validate: {url}")
         
         if not url:
-            print("Error: URL is required")
+            debug_print("Error: URL is required")
             return Response({'isValid': False, 'error': 'URL is required'}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
@@ -863,22 +867,22 @@ class ValidatePdfUrlView(APIView):
             
             # Debug specific arXiv paper issue
             if '1802.04406' in url:
-                print(f"*** SPECIAL DEBUG FOR SPECIFIC ARXIV PAPER: {url} ***")
+                debug_print(f"*** SPECIAL DEBUG FOR SPECIFIC ARXIV PAPER: {url} ***")
                 # Try direct API call
                 debug_arxiv_id = '1802.04406'
                 debug_api_url = f"https://export.arxiv.org/api/query?id_list={debug_arxiv_id}"
                 try:
                     debug_response = requests.get(debug_api_url, timeout=15)
-                    print(f"Direct arXiv API call status: {debug_response.status_code}")
-                    print(f"Direct arXiv API response first 500 chars: {debug_response.text[:500]}")
+                    debug_print(f"Direct arXiv API call status: {debug_response.status_code}")
+                    debug_print(f"Direct arXiv API response first 500 chars: {debug_response.text[:500]}")
                     
                     # Try title extraction
                     debug_title_match = re.search(r'<title>(.*?)</title>', debug_response.text)
                     if debug_title_match:
                         debug_title = debug_title_match.group(1)
-                        print(f"Debug title match: {debug_title}")
+                        debug_print(f"Debug title match: {debug_title}")
                     else:
-                        print("No title match found in direct API call")
+                        debug_print("No title match found in direct API call")
                         
                     # See if we need to look for a different title tag format
                     alternative_tags = ['<dc:title>', '<arxiv:title>']
@@ -886,12 +890,12 @@ class ValidatePdfUrlView(APIView):
                         open_tag = tag
                         close_tag = tag.replace('<', '</')
                         if open_tag in debug_response.text:
-                            print(f"Found alternative tag: {open_tag}")
+                            debug_print(f"Found alternative tag: {open_tag}")
                             alt_match = re.search(f"{re.escape(open_tag)}(.*?){re.escape(close_tag)}", debug_response.text)
                             if alt_match:
-                                print(f"Alternative title match: {alt_match.group(1)}")
+                                debug_print(f"Alternative title match: {alt_match.group(1)}")
                 except Exception as debug_e:
-                    print(f"Error in direct API debug: {debug_e}")
+                    debug_print(f"Error in direct API debug: {debug_e}")
             
             # Normalize URL (e.g., convert arXiv abstract URLs to PDF URLs)
             url = self._normalize_url(url)
@@ -901,7 +905,7 @@ class ValidatePdfUrlView(APIView):
                 arxiv_match = re.search(r'arxiv\.org\/(?:pdf|abs)\/(\d+\.\d+)', url, re.IGNORECASE)
                 if arxiv_match:
                     arxiv_id = arxiv_match.group(1)
-                    print(f"Found arXiv ID: {arxiv_id}, validating via arXiv API")
+                    debug_print(f"Found arXiv ID: {arxiv_id}, validating via arXiv API")
                     return self._validate_arxiv_paper(arxiv_id)
             
             # Set up headers for requests
@@ -912,7 +916,7 @@ class ValidatePdfUrlView(APIView):
             
             try:
                 # Step 1: HEAD request to check accessibility, content-type and size
-                print(f"Making HEAD request to {url}")
+                debug_print(f"Making HEAD request to {url}")
                 head_response = requests.head(url, headers=headers, timeout=10)
                 
                 if not head_response.ok:
@@ -937,7 +941,7 @@ class ValidatePdfUrlView(APIView):
                 
                 # If neither content type nor URL suggests PDF but URL contains "pdf"
                 if not is_pdf and not url_ends_with_pdf and 'pdf' not in url.lower():
-                    print(f"URL does not appear to be a PDF: {url} (Content-Type: {content_type})")
+                    debug_print(f"URL does not appear to be a PDF: {url} (Content-Type: {content_type})")
                     return Response({
                         'isValid': False,
                         'error': f'URL does not appear to be a PDF (Content-Type: {content_type})'
@@ -959,12 +963,12 @@ class ValidatePdfUrlView(APIView):
                 try:
                     title = self._extract_title_from_pdf(url, headers)
                 except Exception as e:
-                    print(f"Error extracting title from PDF: {str(e)}")
+                    debug_print(f"Error extracting title from PDF: {str(e)}")
                     pdf_title_extraction_failed = True
                 
                 # Step 4: Fall back to URL-based title extraction if PDF extraction failed
                 if not title or pdf_title_extraction_failed:
-                    print("Falling back to URL-based title extraction")
+                    debug_print("Falling back to URL-based title extraction")
                     title = self._extract_title_from_url(url)
                 
                 result = {
@@ -974,7 +978,7 @@ class ValidatePdfUrlView(APIView):
                     'contentType': content_type,
                     'contentLength': content_length
                 }
-                print(f"Validation successful, returning: {result}")
+                debug_print(f"Validation successful, returning: {result}")
                 return Response(result)
                     
             except requests.exceptions.Timeout:
@@ -1000,7 +1004,7 @@ class ValidatePdfUrlView(APIView):
     
     def _verify_pdf_downloadable(self, url, headers):
         """Verify PDF is downloadable by fetching a small portion of content."""
-        print(f"Verifying PDF is downloadable: {url}")
+        debug_print(f"Verifying PDF is downloadable: {url}")
         try:
             # Add Range header to request only the first 1KB of the file
             range_headers = headers.copy()
@@ -1011,44 +1015,44 @@ class ValidatePdfUrlView(APIView):
             
             # Check if server supports partial content requests
             if response.status_code == 206:
-                print("Server supports range requests - checking PDF signature in partial content")
+                debug_print("Server supports range requests - checking PDF signature in partial content")
                 # Successful partial content response
                 # Check for PDF signature at the beginning of content
                 if response.content.startswith(b'%PDF-'):
                     return True, None
                 else:
-                    print("Content does not have PDF signature")
+                    debug_print("Content does not have PDF signature")
                     return False, 'Content does not appear to be a PDF'
             
             # If server doesn't support range requests, we got full response
             # Just check the beginning of the content
             elif response.status_code == 200:
-                print("Server doesn't support range requests - checking first bytes of full response")
+                debug_print("Server doesn't support range requests - checking first bytes of full response")
                 # Only check the first few bytes
                 if len(response.content) > 0 and response.content[:10].startswith(b'%PDF-'):
                     return True, None
                 else:
-                    print("Content does not have PDF signature")
+                    debug_print("Content does not have PDF signature")
                     return False, 'Content does not appear to be a PDF'
             
             # Other error status codes
             else:
-                print(f"Download verification failed with status: {response.status_code}")
+                debug_print(f"Download verification failed with status: {response.status_code}")
                 return False, f'Failed to download content (Status: {response.status_code})'
                 
         except requests.exceptions.Timeout:
-            print("Timeout during download verification")
+            debug_print("Timeout during download verification")
             return False, 'Timeout when downloading PDF content'
         except requests.exceptions.RequestException as e:
-            print(f"Network error during download verification: {str(e)}")
+            debug_print(f"Network error during download verification: {str(e)}")
             return False, f'Network error: {str(e)}'
         except Exception as e:
-            print(f"Unexpected error during download verification: {str(e)}")
+            debug_print(f"Unexpected error during download verification: {str(e)}")
             return False, f'Error verifying PDF content: {str(e)}'
     
     def _extract_title_from_pdf(self, url, headers):
         """Extract title from PDF content."""
-        print(f"Attempting to extract title from PDF content: {url}")
+        debug_print(f"Attempting to extract title from PDF content: {url}")
         
         try:
             # Get first 5KB of the PDF - enough for metadata and usually first page header
@@ -1086,7 +1090,7 @@ class ValidatePdfUrlView(APIView):
                             if hasattr(pdf_reader.metadata, 'title') and pdf_reader.metadata.title:
                                 title = pdf_reader.metadata.title
                                 if title and len(title.strip()) > 0:
-                                    print(f"Extracted title from PDF metadata: {title}")
+                                    debug_print(f"Extracted title from PDF metadata: {title}")
                                     # Cancel the alarm
                                     signal.alarm(0)
                                     return title.strip()
@@ -1097,7 +1101,7 @@ class ValidatePdfUrlView(APIView):
                                     if hasattr(pdf_reader.metadata, field) and getattr(pdf_reader.metadata, field):
                                         title = getattr(pdf_reader.metadata, field)
                                         if title and len(str(title).strip()) > 0:
-                                            print(f"Extracted title from PDF metadata field '{field}': {title}")
+                                            debug_print(f"Extracted title from PDF metadata field '{field}': {title}")
                                             # Cancel the alarm
                                             signal.alarm(0)
                                             return str(title).strip()
@@ -1115,7 +1119,7 @@ class ValidatePdfUrlView(APIView):
                                     if line.strip():
                                         # Limit title length
                                         title = line.strip()[:100]
-                                        print(f"Extracted title from first page text: {title}")
+                                        debug_print(f"Extracted title from first page text: {title}")
                                         # Cancel the alarm
                                         signal.alarm(0)
                                         return title
@@ -1123,14 +1127,14 @@ class ValidatePdfUrlView(APIView):
                         # Cancel the alarm in case we're exiting normally
                         signal.alarm(0)
                 except PDFProcessingTimeout as e:
-                    print(f"PDF processing timed out: {str(e)}")
-                    print("Falling back to URL-based title extraction")
+                    debug_print(f"PDF processing timed out: {str(e)}")
+                    debug_print("Falling back to URL-based title extraction")
                     return None
                 except Exception as e:
-                    print(f"Error processing PDF content: {str(e)}")
+                    debug_print(f"Error processing PDF content: {str(e)}")
                     raise
         except Exception as e:
-            print(f"Error extracting title from PDF: {str(e)}")
+            debug_print(f"Error extracting title from PDF: {str(e)}")
             raise
         
         # If we got here, we couldn't extract a title
@@ -1147,28 +1151,28 @@ class ValidatePdfUrlView(APIView):
     
     def _validate_arxiv_paper(self, arxiv_id):
         """Validate arXiv paper existence using the arXiv API."""
-        print(f"Validating arXiv paper: {arxiv_id}")
+        debug_print(f"Validating arXiv paper: {arxiv_id}")
         try:
             # First verify the paper exists in ArXiv database
             url = f"https://export.arxiv.org/api/query?id_list={arxiv_id}"
-            print(f"Making arXiv API request to: {url}")
+            debug_print(f"Making arXiv API request to: {url}")
             response = requests.get(url, timeout=10)
             
-            print(f"arXiv API response status: {response.status_code}")
+            debug_print(f"arXiv API response status: {response.status_code}")
             
             if response.status_code != 200:
-                print(f"arXiv API error: {response.status_code}")
+                debug_print(f"arXiv API error: {response.status_code}")
                 return Response({
                     'isValid': False,
                     'error': f'ArXiv API error: {response.status_code}'
                 })
             
             content = response.text
-            print(f"arXiv API response length: {len(content)} chars")
+            debug_print(f"arXiv API response length: {len(content)} chars")
             
             # Check if paper exists
             if '<entry>' not in content:
-                print("arXiv API response missing <entry> tag")
+                debug_print("arXiv API response missing <entry> tag")
                 return Response({
                     'isValid': False,
                     'error': 'ArXiv paper not found'
@@ -1178,9 +1182,9 @@ class ValidatePdfUrlView(APIView):
             title_tag_position = content.find('<title>')
             if title_tag_position >= 0:
                 snippet = content[title_tag_position:title_tag_position+200]
-                print(f"Title tag found, snippet: {snippet}")
+                debug_print(f"Title tag found, snippet: {snippet}")
             else:
-                print("No <title> tag found in arXiv API response")
+                debug_print("No <title> tag found in arXiv API response")
                 
             # Try different title tag patterns - focusing on title INSIDE the entry tag
             title = None
@@ -1189,19 +1193,19 @@ class ValidatePdfUrlView(APIView):
             entry_match = re.search(r'<entry>([\s\S]*?)</entry>', content)
             if entry_match:
                 entry_content = entry_match.group(1)
-                print(f"Found entry content, now looking for title inside entry")
+                debug_print(f"Found entry content, now looking for title inside entry")
                 
                 # Look for title inside the entry content
                 title_match = re.search(r'<title>(.*?)</title>', entry_content)
                 if title_match:
                     raw_title = title_match.group(1)
-                    print(f"Title found inside entry: {raw_title}")
+                    debug_print(f"Title found inside entry: {raw_title}")
                     
                     # Clean up title
                     title = raw_title.strip()
-                    print(f"Cleaned title: {title}")
+                    debug_print(f"Cleaned title: {title}")
             else:
-                print("No <entry> tag content could be extracted")
+                debug_print("No <entry> tag content could be extracted")
             
             # Verify that the PDF is actually downloadable
             pdf_url = f"https://arxiv.org/pdf/{arxiv_id}.pdf"
@@ -1214,7 +1218,7 @@ class ValidatePdfUrlView(APIView):
             is_downloadable, error_msg = self._verify_pdf_downloadable(pdf_url, headers)
             
             if not is_downloadable:
-                print(f"arXiv PDF is not downloadable: {error_msg}")
+                debug_print(f"arXiv PDF is not downloadable: {error_msg}")
                 return Response({
                     'isValid': False,
                     'error': error_msg or 'ArXiv PDF is not downloadable'
@@ -1222,32 +1226,32 @@ class ValidatePdfUrlView(APIView):
             
             # Special handling for problematic arXiv paper
             if arxiv_id == '1802.04406':
-                print("Detected problematic arXiv ID, adding extra debugging")
+                debug_print("Detected problematic arXiv ID, adding extra debugging")
                 # Try direct access to arXiv.org website as alternative
                 try:
-                    print("Trying to scrape arXiv abstract page as fallback")
+                    debug_print("Trying to scrape arXiv abstract page as fallback")
                     abstract_url = f"https://arxiv.org/abs/{arxiv_id}"
                     abs_response = requests.get(abstract_url, timeout=15)
-                    print(f"Abstract page status: {abs_response.status_code}")
+                    debug_print(f"Abstract page status: {abs_response.status_code}")
                     if abs_response.ok:
                         # Look for title in HTML
                         html_title_match = re.search(r'<h1 class="title[^"]*">[^<]*<span class="descriptor">Title:</span>\s*(.*?)\s*</h1>', 
                                                    abs_response.text)
                         if html_title_match:
                             title = html_title_match.group(1).strip()
-                            print(f"Title extracted from HTML: {title}")
+                            debug_print(f"Title extracted from HTML: {title}")
                         else:
-                            print("No title found in HTML")
+                            debug_print("No title found in HTML")
                             # Just print a chunk of the HTML to see what we're dealing with
                             title_section = abs_response.text.find('class="title')
                             if title_section > -1:
-                                print(f"Title section in HTML (300 chars): {abs_response.text[title_section:title_section+300]}")
+                                debug_print(f"Title section in HTML (300 chars): {abs_response.text[title_section:title_section+300]}")
                 except Exception as scrape_e:
-                    print(f"Error scraping abstract page: {scrape_e}")
+                    debug_print(f"Error scraping abstract page: {scrape_e}")
             
             # Determine final title with fallbacks
             final_title = title or f'ArXiv: {arxiv_id}' or pdf_url[:200]
-            print(f"Final title being returned: '{final_title}'")
+            debug_print(f"Final title being returned: '{final_title}'")
             
             # Prepare response
             response_data = {
@@ -1255,16 +1259,16 @@ class ValidatePdfUrlView(APIView):
                 'title': final_title,
                 'url': pdf_url
             }
-            print(f"Final response data: {response_data}")
+            debug_print(f"Final response data: {response_data}")
             
             return Response(response_data)
             
         except Exception as e:
             logger = logging.getLogger(__name__)
             logger.error(f"Error validating ArXiv paper {arxiv_id}: {str(e)}")
-            print(f"Exception in arXiv validation: {str(e)}")
+            debug_print(f"Exception in arXiv validation: {str(e)}")
             traceback_info = traceback.format_exc()
-            print(f"Traceback: {traceback_info}")
+            debug_print(f"Traceback: {traceback_info}")
             return Response({
                 'isValid': False,
                 'error': f'Error validating ArXiv paper: {str(e)}'
@@ -1272,7 +1276,7 @@ class ValidatePdfUrlView(APIView):
     
     def _extract_title_from_url(self, url):
         """Extract a human-readable title from a URL."""
-        print(f"Extracting title from URL: {url}")
+        debug_print(f"Extracting title from URL: {url}")
         try:
             # Get the last part of the path
             parsed = urlparse(url)
@@ -1289,15 +1293,29 @@ class ValidatePdfUrlView(APIView):
                     .strip()
                 )
                 if title:
-                    print(f"Extracted title from URL filename: {title}")
+                    debug_print(f"Extracted title from URL filename: {title}")
                     return title
             
             # Fallback to domain
             title = f"PDF from {parsed.netloc}"
-            print(f"Using domain fallback for title: {title}")
+            debug_print(f"Using domain fallback for title: {title}")
             return title
         except:
             # Ultimate fallback - truncate full URL to 200 chars
             truncated_url = url[:200]
-            print(f"Using full URL as title (truncated): {truncated_url}")
+            debug_print(f"Using full URL as title (truncated): {truncated_url}")
             return truncated_url
+
+
+
+
+class HealthCheckView(View):
+    """Health check endpoint for Railway monitoring."""
+    
+    def get(self, request):
+        """Return health status of the application."""
+        return JsonResponse({
+            'status': 'healthy',
+            'message': 'Research Assistant Backend is running',
+            'timestamp': str(timezone.now()) if 'timezone' in globals() else 'N/A'
+        })

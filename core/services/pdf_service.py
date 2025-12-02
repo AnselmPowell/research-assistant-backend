@@ -18,17 +18,12 @@ from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 from .embedding_service import get_embedding, validate_note_relevance, calculate_similarity, get_google_embeddings_batch, calculate_cosine_similarities
 from .llm_service import LLM
+from ..utils.debug import debug_print
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# Enable debug printing
-DEBUG_PRINT = True
 
-def debug_print(message):
-    """Print debug information if DEBUG_PRINT is enabled."""
-    if DEBUG_PRINT:
-        print(f"[PDF] {message}")
 
 def normalize_url(url: str) -> str:
     """Normalize URL to ensure it's a direct PDF link."""
@@ -752,7 +747,7 @@ def process_pdf(pdf_url: str, search_terms: List[str], query_embedding: List[flo
         
         # Log performance metrics
         processing_time = time.time() - start_time
-        print(f"PDF processing completed in {processing_time:.2f} seconds. PDF: {pdf_url}, Pages: {page_count}, Notes: {len(notes)}")
+        debug_print(f"PDF processing completed in {processing_time:.2f} seconds. PDF: {pdf_url}, Pages: {page_count}, Notes: {len(notes)}")
 
         # Apply final validation if we have notes and an explanation
         if notes and explanation:

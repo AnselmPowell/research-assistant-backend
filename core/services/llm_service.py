@@ -10,17 +10,12 @@ import time
 from typing import List, Dict, Any, Optional
 from pydantic_ai import Agent
 from django.conf import settings
+from ..utils.debug import debug_print
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# Enable debug printing
-DEBUG_PRINT = True
 
-def debug_print(message):
-    """Print debug information if DEBUG_PRINT is enabled."""
-    if DEBUG_PRINT:
-        print(f"[LLM] {message}")
 
 class LLM:
     """Class for interacting with LLMs using Pydantic-AI."""

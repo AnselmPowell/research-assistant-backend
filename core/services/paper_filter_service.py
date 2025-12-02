@@ -14,17 +14,12 @@ from .llm_service import LLM
 from .embedding_service import filter_papers_by_embedding_similarity
 from ..models import Paper, ResearchSession
 import concurrent.futures
+from ..utils.debug import debug_print
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# Enable debug printing
-DEBUG_PRINT = True
 
-def debug_print(message):
-    """Print debug information if DEBUG_PRINT is enabled."""
-    if DEBUG_PRINT:
-        print(f"[FILTER] {message}")
 
 def clean_abstract(abstract: str) -> str:
     """Clean and format abstract text for better embedding quality."""
