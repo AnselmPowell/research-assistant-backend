@@ -363,8 +363,8 @@ def _process_research_session_thread(session_id: str, settings_data=None):
             max_urls = 30  # Default fallback
 
         max_urls = 200
-        debug_print("max_urls, ", max_urls)
-        debug_print("len(all_candidate_urls), ", len(all_candidate_urls))
+        debug_print(f"max_urls, {max_urls}")
+        debug_print(f"len(all_candidate_urls), {len(all_candidate_urls)}")
     
         # Apply URL limit if specified
         if len(all_candidate_urls) > max_urls:

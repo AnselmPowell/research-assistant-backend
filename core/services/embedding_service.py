@@ -30,7 +30,6 @@ def get_embedding(text: str) -> List[float]:
         # Return empty embedding of appropriate dimension
         debug_print("Empty text provided, returning zero embedding")
         return [0.0] * 1536  # Default dimension for OpenAI embeddings
-    
     try:
         # Initialize OpenAI client
         api_key = settings.OPENAI_API_KEY or os.environ.get("OPENAI_API_KEY", "")
