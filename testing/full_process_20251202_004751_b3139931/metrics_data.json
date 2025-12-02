@@ -1,0 +1,365 @@
+{
+  "session_info": {
+    "session_id": "b3139931-f23f-4939-80be-5853a47e8581",
+    "start_time": "2025-12-02T00:47:51.176672",
+    "topics": [
+      "Criminology",
+      "Criminolgogy in Europe"
+    ],
+    "info_queries": [
+      "What are the social and economic factors most strongly correlated with youth crime rates in modern European cities?"
+    ],
+    "direct_urls": [],
+    "is_url_only_search": false,
+    "end_time": "2025-12-02T00:59:30.561614"
+  },
+  "search_terms": {
+    "exact_phrases": [
+      "youth crime",
+      "European criminology",
+      "crime rates",
+      "social factors",
+      "economic factors"
+    ],
+    "title_terms": [
+      "youth crime",
+      "crime correlation",
+      "economic impact",
+      "social dynamics",
+      "European cities"
+    ],
+    "abstract_terms": [
+      "crime",
+      "youth",
+      "factors"
+    ],
+    "general_terms": [
+      "youth crime rates",
+      "European crime studies",
+      "social economic factors",
+      "crime analysis"
+    ]
+  },
+  "arxiv_search": {
+    "queries_generated": [
+      "all:\"youth crime\"",
+      "all:\"European criminology\"",
+      "ti:youth crime",
+      "ti:crime correlation",
+      "ti:economic impact",
+      "abs:crime",
+      "abs:youth",
+      "(all:youth crime rates OR all:European crime studies OR all:social economic factors OR all:crime analysis)"
+    ],
+    "total_papers_found": 50,
+    "search_duration": 16.3271324634552
+  },
+  "pre_filtering": {
+    "total_papers": 50,
+    "relevant_papers": 19,
+    "filtered_papers": 31,
+    "filtering_duration": 4.945647716522217
+  },
+  "pdf_processing": {
+    "papers_processed": [
+      {
+        "paper_id": "6404694a-6f0f-496d-a41b-417ca9d2098f",
+        "url": "https://arxiv.org/pdf/1903.00270v2",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-12-02T00:48:24.380564",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 17.903807163238525,
+        "status": "success"
+      },
+      {
+        "paper_id": "a0b633eb-7956-49d5-a76b-6d8ba5d5659d",
+        "url": "https://arxiv.org/pdf/2211.01551v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-12-02T00:48:24.477092",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 634.369455575943,
+        "status": "error"
+      },
+      {
+        "paper_id": "7947ee1e-cfc0-4160-97eb-7fcb726aeeaa",
+        "url": "https://arxiv.org/pdf/1704.07826v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-12-02T00:48:24.477815",
+        "processing_strategy": "Simple Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 9.245356559753418,
+        "status": "success"
+      },
+      {
+        "paper_id": "8ecc4ecc-2f2a-4b8b-96b8-2edd5877f567",
+        "url": "https://arxiv.org/pdf/2007.10268v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-12-02T00:48:24.479602",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 665.2263259887695,
+        "status": "error"
+      },
+      {
+        "paper_id": "a67c9860-08b6-41bf-8ed0-86737c1c1b91",
+        "url": "https://arxiv.org/pdf/2204.04399v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-12-02T00:48:33.851655",
+        "processing_strategy": "Simple Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 8.431828737258911,
+        "status": "success"
+      },
+      {
+        "paper_id": "6cc4c3d5-f572-4846-b18d-a979b6b93da5",
+        "url": "https://arxiv.org/pdf/2410.09989v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-12-02T00:48:42.415009",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 2,
+        "processing_time": 28.962886810302734,
+        "status": "success"
+      },
+      {
+        "paper_id": "18c1e7f2-e5a3-4564-9cac-9536f8d9a3e1",
+        "url": "https://arxiv.org/pdf/2509.20913v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-12-02T00:48:42.421263",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 4,
+        "processing_time": 76.46009922027588,
+        "status": "success"
+      },
+      {
+        "paper_id": "656573a0-02b9-459f-93e2-7052963f52ff",
+        "url": "https://arxiv.org/pdf/2302.04572v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-12-02T00:49:11.732262",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 18.88796639442444,
+        "status": "success"
+      },
+      {
+        "paper_id": "18fc8a7d-ab63-4457-a795-9d046434d406",
+        "url": "https://arxiv.org/pdf/2303.16310v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-12-02T00:49:30.756338",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 37.92993903160095,
+        "status": "success"
+      },
+      {
+        "paper_id": "e8ab2333-aa8e-44d6-962a-85e3e1183079",
+        "url": "https://arxiv.org/pdf/2106.10364v3",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-12-02T00:49:59.412618",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 6,
+        "processing_time": 47.78795123100281,
+        "status": "success"
+      },
+      {
+        "paper_id": "4739dda3-df0e-4ebe-a644-77f339215fa6",
+        "url": "https://arxiv.org/pdf/1902.03105v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-12-02T00:50:08.815389",
+        "processing_strategy": "Simple Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 2,
+        "processing_time": 18.804575443267822,
+        "status": "success"
+      },
+      {
+        "paper_id": "6f71ddcb-352e-4c2b-940d-0fbc4d673432",
+        "url": "https://arxiv.org/pdf/1701.01505v2",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-12-02T00:50:27.962219",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 36.152992248535156,
+        "status": "success"
+      },
+      {
+        "paper_id": "112a754c-675e-42b7-807a-62c15c05d90d",
+        "url": "https://arxiv.org/pdf/1409.2983v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-12-02T00:50:47.881901",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 5,
+        "processing_time": 38.13434815406799,
+        "status": "success"
+      },
+      {
+        "paper_id": "105438c8-c7a8-42a0-91a0-9a71a528d9fa",
+        "url": "https://arxiv.org/pdf/2011.05658v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-12-02T00:51:04.265827",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 5,
+        "processing_time": 90.42860770225525,
+        "status": "success"
+      },
+      {
+        "paper_id": "97cc0a89-97e9-41fd-9ab9-bfe2bba9e44d",
+        "url": "https://arxiv.org/pdf/1411.1743v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-12-02T00:51:26.560785",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 5,
+        "processing_time": 29.31758737564087,
+        "status": "success"
+      },
+      {
+        "paper_id": "7946d21a-6078-4a20-bf7d-98267641c311",
+        "url": "https://arxiv.org/pdf/1804.08159v2",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-12-02T00:51:56.485869",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 4,
+        "processing_time": 24.487946033477783,
+        "status": "success"
+      },
+      {
+        "paper_id": "9a852088-3c7a-425f-b67a-c7c73f3a9c67",
+        "url": "https://arxiv.org/pdf/1901.03589v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-12-02T00:52:21.454723",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 2,
+        "processing_time": 21.02898335456848,
+        "status": "success"
+      },
+      {
+        "paper_id": "23296c10-3cf2-4926-8bde-0df8e35e178a",
+        "url": "https://arxiv.org/pdf/2502.12099v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-12-02T00:52:35.351295",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 1,
+        "processing_time": 18.020044088363647,
+        "status": "success"
+      },
+      {
+        "paper_id": "8379cb08-64e9-4ece-b06e-09b3aad14d73",
+        "url": "https://arxiv.org/pdf/1712.02817v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-12-02T00:52:42.802178",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 5,
+        "processing_time": 43.95293593406677,
+        "status": "success"
+      }
+    ],
+    "total_processing_time": 1865.533637046814,
+    "processing_strategy": {}
+  },
+  "note_extraction": {
+    "total_notes_extracted": 41,
+    "notes_per_paper": {
+      "7947ee1e-cfc0-4160-97eb-7fcb726aeeaa": 0,
+      "a67c9860-08b6-41bf-8ed0-86737c1c1b91": 0,
+      "6404694a-6f0f-496d-a41b-417ca9d2098f": 0,
+      "6cc4c3d5-f572-4846-b18d-a979b6b93da5": 2,
+      "656573a0-02b9-459f-93e2-7052963f52ff": 0,
+      "18c1e7f2-e5a3-4564-9cac-9536f8d9a3e1": 4,
+      "18fc8a7d-ab63-4457-a795-9d046434d406": 0,
+      "4739dda3-df0e-4ebe-a644-77f339215fa6": 2,
+      "e8ab2333-aa8e-44d6-962a-85e3e1183079": 6,
+      "6f71ddcb-352e-4c2b-940d-0fbc4d673432": 0,
+      "112a754c-675e-42b7-807a-62c15c05d90d": 5,
+      "97cc0a89-97e9-41fd-9ab9-bfe2bba9e44d": 5,
+      "7946d21a-6078-4a20-bf7d-98267641c311": 4,
+      "105438c8-c7a8-42a0-91a0-9a71a528d9fa": 5,
+      "9a852088-3c7a-425f-b67a-c7c73f3a9c67": 2,
+      "23296c10-3cf2-4926-8bde-0df8e35e178a": 1,
+      "8379cb08-64e9-4ece-b06e-09b3aad14d73": 5,
+      "a0b633eb-7956-49d5-a76b-6d8ba5d5659d": 0,
+      "8ecc4ecc-2f2a-4b8b-96b8-2edd5877f567": 0
+    },
+    "final_notes_returned": 41,
+    "notes_filtered_out": 0
+  },
+  "performance": {
+    "total_duration": 699.384942,
+    "bottlenecks": []
+  }
+}

@@ -1,0 +1,315 @@
+{
+  "session_info": {
+    "session_id": "7d541810-d6f0-4d32-9949-73daee1349db",
+    "start_time": "2025-11-28T03:41:11.713109",
+    "topics": [
+      "Dopamine vs serotonin roles"
+    ],
+    "info_queries": [
+      "The Science of Happiness",
+      "What make people happy"
+    ],
+    "direct_urls": [],
+    "is_url_only_search": false,
+    "end_time": "2025-11-28T03:52:09.164093"
+  },
+  "search_terms": {
+    "exact_phrases": [
+      "dopamine roles",
+      "serotonin roles",
+      "science of happiness",
+      "happiness factors"
+    ],
+    "title_terms": [
+      "dopamine function",
+      "serotonin function",
+      "happiness research"
+    ],
+    "abstract_terms": [
+      "dopamine",
+      "serotonin",
+      "happiness"
+    ],
+    "general_terms": [
+      "happiness science",
+      "neurotransmitter roles"
+    ]
+  },
+  "arxiv_search": {
+    "queries_generated": [
+      "all:\"dopamine roles\"",
+      "all:\"serotonin roles\"",
+      "ti:dopamine function",
+      "ti:serotonin function",
+      "ti:happiness research",
+      "abs:dopamine",
+      "abs:serotonin",
+      "(all:happiness science OR all:neurotransmitter roles)"
+    ],
+    "total_papers_found": 50,
+    "search_duration": 13.780173063278198
+  },
+  "pre_filtering": {
+    "total_papers": 50,
+    "relevant_papers": 16,
+    "filtered_papers": 34,
+    "filtering_duration": 4.82440447807312
+  },
+  "pdf_processing": {
+    "papers_processed": [
+      {
+        "paper_id": "d77dfc21-95a8-43ac-811c-63ce352b2f08",
+        "url": "https://arxiv.org/pdf/1009.4516v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-28T03:41:40.652844",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 1,
+        "processing_time": 53.03706359863281,
+        "status": "success"
+      },
+      {
+        "paper_id": "aaf1d8fc-b803-4f4d-9181-3c902c0b9161",
+        "url": "https://arxiv.org/pdf/2109.08718v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-28T03:41:40.660481",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 47.941149950027466,
+        "status": "success"
+      },
+      {
+        "paper_id": "ee368483-0c5f-4a86-b1d9-394328718d14",
+        "url": "https://arxiv.org/pdf/2401.13467v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-28T03:41:40.671430",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 627.694766998291,
+        "status": "error"
+      },
+      {
+        "paper_id": "bc585202-79b8-4307-be7f-8440f2a8616d",
+        "url": "https://arxiv.org/pdf/1606.00157v3",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-28T03:41:40.682460",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 26.90073561668396,
+        "status": "success"
+      },
+      {
+        "paper_id": "823a21b2-d18e-4578-b3f1-e8c5e8c69951",
+        "url": "https://arxiv.org/pdf/2507.07227v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-28T03:42:07.733584",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 15.21365475654602,
+        "status": "success"
+      },
+      {
+        "paper_id": "b6ae1f68-5c1c-44b9-a17d-49c83c9a14d8",
+        "url": "https://arxiv.org/pdf/1510.01100v6",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-28T03:42:23.070189",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 4,
+        "processing_time": 39.167001247406006,
+        "status": "success"
+      },
+      {
+        "paper_id": "12966df3-a8ac-4cec-a245-ff903de6756b",
+        "url": "https://arxiv.org/pdf/2001.11627v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-28T03:42:28.775292",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 2,
+        "processing_time": 26.88480806350708,
+        "status": "success"
+      },
+      {
+        "paper_id": "842006bd-a94b-4d08-9442-58029b2ec465",
+        "url": "https://arxiv.org/pdf/2510.22178v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-28T03:42:33.910934",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 16.330852031707764,
+        "status": "success"
+      },
+      {
+        "paper_id": "a92a63af-9125-470f-834b-c0a44b083fc3",
+        "url": "https://arxiv.org/pdf/1204.0142v2",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-28T03:42:50.361880",
+        "processing_strategy": "Simple Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 6.060710668563843,
+        "status": "success"
+      },
+      {
+        "paper_id": "2c0149b0-13d3-4666-9d26-f14b5eb09744",
+        "url": "https://arxiv.org/pdf/2301.10768v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-28T03:42:56.005373",
+        "processing_strategy": "Simple Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 2,
+        "processing_time": 16.15757465362549,
+        "status": "success"
+      },
+      {
+        "paper_id": "94773053-0826-427e-adad-cd118f792b3b",
+        "url": "https://arxiv.org/pdf/2509.04454v2",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-28T03:42:56.544532",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 7,
+        "processing_time": 65.0382297039032,
+        "status": "success"
+      },
+      {
+        "paper_id": "711c57b3-810c-425a-9753-2f3ec6752179",
+        "url": "https://arxiv.org/pdf/2108.12402v3",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-28T03:43:02.761011",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 2,
+        "processing_time": 32.13955903053284,
+        "status": "success"
+      },
+      {
+        "paper_id": "06b1c606-0be5-44ee-997a-d73181e8da65",
+        "url": "https://arxiv.org/pdf/1709.00374v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-28T03:43:12.515890",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 5,
+        "processing_time": 50.67847943305969,
+        "status": "success"
+      },
+      {
+        "paper_id": "8cd50c68-3059-4a1b-bb0e-c8fd77b01756",
+        "url": "https://arxiv.org/pdf/2005.13256v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-28T03:43:35.246333",
+        "processing_strategy": "Simple Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 0,
+        "processing_time": 6.290527582168579,
+        "status": "success"
+      },
+      {
+        "paper_id": "7f5d89a7-9990-4cfb-9aed-14dbdf7e5c79",
+        "url": "https://arxiv.org/pdf/1404.7591v1",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-28T03:43:41.697786",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 20,
+        "processing_time": 212.21892070770264,
+        "status": "success"
+      },
+      {
+        "paper_id": "d8426e03-b4ce-414f-9a72-727aecd73381",
+        "url": "https://arxiv.org/pdf/1304.4201v15",
+        "title": "Processing...",
+        "total_pages": 0,
+        "start_time": "2025-11-28T03:44:02.464179",
+        "processing_strategy": "Advanced Path",
+        "relevant_pages": [],
+        "page_similarities": {},
+        "chunks_processed": [],
+        "notes_extracted": 11,
+        "processing_time": 81.98373293876648,
+        "status": "success"
+      }
+    ],
+    "total_processing_time": 1323.7377669811249,
+    "processing_strategy": {}
+  },
+  "note_extraction": {
+    "total_notes_extracted": 54,
+    "notes_per_paper": {
+      "bc585202-79b8-4307-be7f-8440f2a8616d": 0,
+      "823a21b2-d18e-4578-b3f1-e8c5e8c69951": 0,
+      "aaf1d8fc-b803-4f4d-9181-3c902c0b9161": 0,
+      "d77dfc21-95a8-43ac-811c-63ce352b2f08": 1,
+      "842006bd-a94b-4d08-9442-58029b2ec465": 0,
+      "12966df3-a8ac-4cec-a245-ff903de6756b": 2,
+      "a92a63af-9125-470f-834b-c0a44b083fc3": 0,
+      "b6ae1f68-5c1c-44b9-a17d-49c83c9a14d8": 4,
+      "2c0149b0-13d3-4666-9d26-f14b5eb09744": 2,
+      "711c57b3-810c-425a-9753-2f3ec6752179": 2,
+      "8cd50c68-3059-4a1b-bb0e-c8fd77b01756": 0,
+      "94773053-0826-427e-adad-cd118f792b3b": 7,
+      "06b1c606-0be5-44ee-997a-d73181e8da65": 5,
+      "d8426e03-b4ce-414f-9a72-727aecd73381": 11,
+      "7f5d89a7-9990-4cfb-9aed-14dbdf7e5c79": 20,
+      "ee368483-0c5f-4a86-b1d9-394328718d14": 0
+    },
+    "final_notes_returned": 54,
+    "notes_filtered_out": 0
+  },
+  "performance": {
+    "total_duration": 657.450984,
+    "bottlenecks": []
+  }
+}
