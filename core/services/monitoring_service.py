@@ -442,7 +442,9 @@ class ProcessMonitor:
         """Format list items for markdown."""
         if not items:
             return "- None\n"
-        return "\n".join(f"- {item}" for item in items) + "\n"
+        newline = "\n"
+        formatted_items = newline.join(f"- {item}" for item in items)
+        return formatted_items + newline
     
     def _save_json_data(self):
         """Save raw metrics data as JSON."""

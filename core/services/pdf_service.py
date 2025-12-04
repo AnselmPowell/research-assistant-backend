@@ -754,8 +754,8 @@ def process_pdf(pdf_url: str, search_terms: List[str], query_embedding: List[flo
             # Import here to avoid circular imports
             from .embedding_service import validate_note_relevance
             
-            debug_print(f"Performing final note validation with explanation: '{explanation[:300]} \n \n...'")
-            debug_print(f"Number of notes to validate: '{len(notes)} \n \n...'")
+            debug_print(f"Performing final note validation with explanation: '{explanation[:300]}' (truncated)")
+            debug_print(f"Number of notes to validate: {len(notes)}")
             validated_notes, filtered_notes = validate_note_relevance(
                 notes, 
                 original_queries, 

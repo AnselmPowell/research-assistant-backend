@@ -36,7 +36,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Create user with email as username."""
         email = validated_data['email']
-        print(f"\n[UserRegistrationSerializer] Creating user: {email}")
+        print("[UserRegistrationSerializer] Creating user:", email)
         
         # Create user with email as username
         user = User.objects.create_user(

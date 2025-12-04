@@ -130,37 +130,37 @@ def verify_urls_with_llm(search_terms, topics, urls, max_urls=None):
             url_list += f"URL: {item['url']}\n"
             url_list += f"TITLE: {item['title']}\n"
             url_list += f"SUMMARY: {item['summary']}\n\n"
-            url_list += f"###########################\n\n"
+            url_list += "###########################\n\n"
         
         debug_print(f"Prepared metadata for {len(url_metadata)} papers for LLM verification")
         
         # Prepare the system prompt with multiple warnings about empty results
-        system_prompt = f"""
-        You are an expert academic research assistant helping to select the most relevant papers for a research query.\n
-        
-        Original research topics: {", ".join(topics)}\n
-        Search terms: {", ".join(search_terms)}\n\n
-        
-        INSTRUCTIONS:
-        1. Analyze each paper's title and summary to determine if it's directly relevant to the research topics.
-        2. Only select papers that are HIGHLY relevant to the specified topics and search terms.
-        3. Focus on academic quality and direct topical relevance.
-        \n
-        IMPORTANT: If NO papers are relevant, return an EMPTY LIST. Do not include irrelevant papers.
-        REPEAT: If none of the papers are relevant, return NONE of them.
-        CRITICAL: Return ZERO URLs if none meet high relevance standards.
-        
-        Return ONLY a JSON array containing the URLs of relevant papers, in order of relevance.
-        No explanation, no additional text, JUST the array of URLs.
-        """
+        system_prompt = f"""You are an expert academic research assistant helping to select the most relevant papers for a research query.
+
+Original research topics: {", ".join(topics)}
+Search terms: {", ".join(search_terms)}
+
+INSTRUCTIONS:
+1. Analyze each paper's title and summary to determine if it's directly relevant to the research topics.
+2. Only select papers that are HIGHLY relevant to the specified topics and search terms.
+3. Focus on academic quality and direct topical relevance.
+
+IMPORTANT: If NO papers are relevant, return an EMPTY LIST. Do not include irrelevant papers.
+REPEAT: If none of the papers are relevant, return NONE of them.
+CRITICAL: Return ZERO URLs if none meet high relevance standards.
+
+Return ONLY a JSON array containing the URLs of relevant papers, in order of relevance.
+No explanation, no additional text, JUST the array of URLs."""
         
         # Add user-specified max_urls constraint if provided
         if max_urls:
-            system_prompt += f"\nSelect a maximum of {max_urls} most relevant URLs."
+            newline = "\n"
+            system_prompt += f"{newline}Select a maximum of {max_urls} most relevant URLs."
             debug_print(f"Limiting results to {max_urls} URLs")
         
         # Create the prompt
-        prompt = f"Papers to evaluate:\n\n{url_list}"
+        newline = "\n\n"
+        prompt = f"Papers to evaluate:{newline}{url_list}"
         
         debug_print("Sending prompt to LLM for URL verification")
         

@@ -26,7 +26,7 @@ class TokenManager:
         Returns:
             tuple: (access_token, refresh_token)
         """
-        print(f"\n[TokenManager] Generating tokens for user ID: {user_id}")
+        print("[TokenManager] Generating tokens for user ID:", user_id)
         
         # Access token - short lived
         access_payload = {
@@ -58,7 +58,7 @@ class TokenManager:
             settings.JWT_SETTINGS['SIGNING_KEY'],
             algorithm=settings.JWT_SETTINGS['ALGORITHM']
         )
-        print(f"[TokenManager] Refresh token generated - Length: {len(refresh_token)}\n")
+        print("[TokenManager] Refresh token generated - Length:", len(refresh_token))
 
         return access_token, refresh_token
 

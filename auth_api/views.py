@@ -100,7 +100,7 @@ class RegistrationView(APIView):
         
         # Create the profile data first
         profile_data = UserProfileSerializer(user.profile).data
-        print(f"\n[RegistrationView] Profile data prepared: {profile_data.get('email')}")
+        print("[RegistrationView] Profile data prepared:", profile_data.get('email'))
         
         # Then create the response data
         response_data = {
