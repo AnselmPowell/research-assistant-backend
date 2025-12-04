@@ -256,16 +256,28 @@ def extract_information_from_text(text: str, search_terms:List[str], queries: Li
     # Create system prompt
     system_prompt = f"""
 
-    ########################################\n\n
-    You are an AI research assistant analyzing academic papers. Your Goal is to Extract information from research papers that DIRECTLY relates to any of these user queries below, : \n ### \n 
+    ########################################
 
-    Relevant search terms for context:\n ### 
-     {",".join([f" {t}" for t in search_terms])}\n\n####\n\n
     
-    # Users Queries Below, search the pages below to match what the user is looking for. The Users Queries Below: \n
-    {"\n".join([f"- {q}" for q in queries])}
+    You are an AI research assistant analyzing academic papers. Your Goal is to Extract information from research papers that DIRECTLY relates to any of these user queries below, :
+      ### 
+
+
+    Relevant search terms for context:
+     
+     {",".join([f" {t}" for t in search_terms])}
+     
+     ####
+
+
     
-     \n #######
+    # Users Queries Below, search the pages below to match what the user is looking for. The Users Queries Below:
+
+
+    {" ".join([f"- {q}" for q in queries])}
+    
+     
+    #######
     
     Be very strict on what the user is asking for! The "Relevent search terms" are the type of books/subject to help understand the topic better, but you MUST ONLY extract information that DIRECTLY answers the users specific queries above.
      
@@ -280,7 +292,10 @@ def extract_information_from_text(text: str, search_terms:List[str], queries: Li
     6. Explain in detail what the text you extracted is talking about in the boarder context of the full academic paper. And explain what the user is asking for and why the text you extracted relates to the users query (matches_topic) and why is answers what they are looking ("justification"). If your explanation is not good enough and does not directly answers the users question, do not include it, in the final output, provide an 
 
 
-    Important if nothing in the papers directly answer the queries for the user below DONT INCLUDE IT, YOU MUST JUSTIFY WHY YOU THE TEXT ANSWERS THE USER QUERIES: ##  USER QUESTIONS \n ({" ".join([f"- {q}" for q in queries])}) ## \n Important if nothing in the papers directly answer the queries for the user below DONT INCLUDE IT, YOU MUST JUSTIFY WHY YOU THE TEXT ANSWERS THE USER QUERIES:
+    Important if nothing in the papers directly answer the queries for the user below DONT INCLUDE IT, YOU MUST JUSTIFY WHY YOU THE TEXT ANSWERS THE USER QUERIES: ##  USER QUESTIONS
+    ({" ".join([f"- {q}" for q in queries])}) 
+    ## 
+    Important if nothing in the papers directly answer the queries for the user below DONT INCLUDE IT, YOU MUST JUSTIFY WHY YOU THE TEXT ANSWERS THE USER QUERIES:
     """
     
     if extract_citations:
