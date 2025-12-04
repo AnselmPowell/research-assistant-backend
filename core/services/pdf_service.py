@@ -280,7 +280,7 @@ def extract_information_from_text(text: str, search_terms:List[str], queries: Li
     6. Explain in detail what the text you extracted is talking about in the boarder context of the full academic paper. And explain what the user is asking for and why the text you extracted relates to the users query (matches_topic) and why is answers what they are looking ("justification"). If your explanation is not good enough and does not directly answers the users question, do not include it, in the final output, provide an 
 
 
-    Important if nothing in the papers directly answer the queries for the user below DONT INCLUDE IT, YOU MUST JUSTIFY WHY YOU THE TEXT ANSWERS THE USER QUERIES: ##  USER QUESTIONS ({"\n".join([f"- {q}" for q in queries])}) ## \n Important if nothing in the papers directly answer the queries for the user below DONT INCLUDE IT, YOU MUST JUSTIFY WHY YOU THE TEXT ANSWERS THE USER QUERIES:
+    Important if nothing in the papers directly answer the queries for the user below DONT INCLUDE IT, YOU MUST JUSTIFY WHY YOU THE TEXT ANSWERS THE USER QUERIES: ##  USER QUESTIONS \n ({" ".join([f"- {q}" for q in queries])}) ## \n Important if nothing in the papers directly answer the queries for the user below DONT INCLUDE IT, YOU MUST JUSTIFY WHY YOU THE TEXT ANSWERS THE USER QUERIES:
     """
     
     if extract_citations:
