@@ -291,7 +291,7 @@ AUTH_SETTINGS = {
 # JWT token settings
 JWT_SETTINGS = {
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY,
+    'SIGNING_KEY': os.environ.get('JWT_SECRET', SECRET_KEY),  # Use dedicated JWT key or fallback to SECRET_KEY
     'VERIFYING_KEY': None,
     'ACCESS_TOKEN_LIFETIME': timedelta(days=30),  # Long-lived for development
     'REFRESH_TOKEN_LIFETIME': timedelta(days=31),
