@@ -39,11 +39,7 @@ class CSRFTokenView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        print("\n=== [CSRFTokenView] START ===")
-        print("[CSRFTokenView] Method: GET")
         token = get_token(request)
-        print(f"[CSRFTokenView] Token generated: {'YES' if token else 'NO'}")
-        print("=== [CSRFTokenView] END ===\n")
         return JsonResponse({'csrfToken': token})
 
 
@@ -52,42 +48,20 @@ class RegistrationView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        print("\n" + "="*60)
-        print("=== [RegistrationView] START ===")
-        print("="*60)
-        print(f"[RegistrationView] Request method: {request.method}")
-        print(f"[RegistrationView] Request data keys: {list(request.data.keys())}")
-        print(f"[RegistrationView] Email: {request.data.get('email', 'N/A')}")
-        print(f"[RegistrationView] First name: {request.data.get('first_name', 'N/A')}")
-        print(f"[RegistrationView] Last name: {request.data.get('last_name', 'N/A')}")
-        
-        print("\n[RegistrationView] Validating with serializer...")
         serializer = UserRegistrationSerializer(data=request.data)
         
         if not serializer.is_valid():
-            print("[RegistrationView] Serializer validation FAILED")
-            print(f"[RegistrationView] Errors: {serializer.errors}")
-            print("="*60 + "\n")
             return Response({
                 'status': 'error',
                 'message': 'Invalid registration details',
                 'detail': serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
-        
-        print("[RegistrationView] Serializer validation SUCCESS")
        
-        print("\n[RegistrationView] Creating user...")
         user = serializer.save()
-        print(f"[RegistrationView] User created - ID: {user.id}, Email: {user.email}")
         
-        print("\n[RegistrationView] Generating tokens...")
         access_token, refresh_token = TokenManager.generate_tokens(user.id)
-        print(f"[RegistrationView] Access token length: {len(access_token)}")
-        print(f"[RegistrationView] Refresh token length: {len(refresh_token)}")
         
-        print("\n[RegistrationView] Creating user session...")
         ip_address = get_client_ip(request)
-        print(f"[RegistrationView] Client IP: {ip_address}")
         UserSession.objects.create(
             user=user,
             session_token=access_token,
@@ -96,11 +70,9 @@ class RegistrationView(APIView):
             ip_address=ip_address,
             expires_at=timezone.now() + timedelta(days=7)
         )
-        print("[RegistrationView] User session created")
         
         # Create the profile data first
         profile_data = UserProfileSerializer(user.profile).data
-        print("[RegistrationView] Profile data prepared:", profile_data.get('email'))
         
         # Then create the response data
         response_data = {
@@ -111,9 +83,6 @@ class RegistrationView(APIView):
             'user': profile_data
         }
         
-        print("\n" + "="*60)
-        print("=== [RegistrationView] END - SUCCESS ===")
-        print("="*60 + "\n")
         return Response(response_data, status=status.HTTP_201_CREATED)
         
         # except Exception as e:
