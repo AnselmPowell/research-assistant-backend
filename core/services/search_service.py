@@ -266,7 +266,7 @@ KEY SUCCESS FACTORS:
 
 
 
-def search_arxiv_with_structured_queries(search_structure: Dict, max_results=50, original_topics=None, original_queries=None) -> Dict[str, Any]:
+def search_arxiv_with_structured_queries(search_structure: Dict, max_results=100, original_topics=None, original_queries=None) -> Dict[str, Any]:
     """
     Enhanced arXiv search using structured queries with result limiting and rate limiting.
     Now returns both URLs and metadata to eliminate duplicate API calls.
@@ -282,6 +282,12 @@ def search_arxiv_with_structured_queries(search_structure: Dict, max_results=50,
         - 'urls': List of arXiv PDF URLs (limited to max_results)
         - 'metadata': Dict mapping URLs to metadata (id, title, abstract, authors, date)
     """
+    # 🔍 DEBUG: Log input parameters
+    print(f"🔍 ARXIV DEBUG - Input search_structure: {search_structure}")
+    print(f"🔍 ARXIV DEBUG - Original topics: {original_topics}")
+    print(f"🔍 ARXIV DEBUG - Original queries: {original_queries}")
+    print(f"🔍 ARXIV DEBUG - Max results requested: {max_results}")
+    
     # Build queries from the structured terms
     queries = build_arxiv_queries(search_structure)
     
@@ -298,6 +304,11 @@ def search_arxiv_with_structured_queries(search_structure: Dict, max_results=50,
                 # Add original queries as all-field searches
                 queries.append(f'all:"{query}"')
     
+    # 🔍 DEBUG: Log final queries being sent to ArXiv
+    print(f"🔍 ARXIV DEBUG - Final {len(queries)} queries to send:")
+    for idx, query in enumerate(queries):
+        print(f"🔍 ARXIV DEBUG - Query {idx+1}: {query}")
+    
     debug_print(f"Searching arXiv with {len(queries)} structured queries (including original topics/queries)")
     
     all_results = []
@@ -309,7 +320,7 @@ def search_arxiv_with_structured_queries(search_structure: Dict, max_results=50,
         # For simple queries like "sports psychology", we want lots of results
         results_per_query = max(15, min(50, max_results // 2))  # At least 15, up to 50
     else:
-        results_per_query = 50  # Default to higher number for better coverage
+        results_per_query = 100  # Default to higher number for better coverage
     
     debug_print(f"Fetching up to {results_per_query} results per query to reach target of {max_results}")
     debug_print(f"Using {len(queries)} queries, expecting to find {len(queries) * results_per_query} total results before deduplication")
@@ -325,6 +336,9 @@ def search_arxiv_with_structured_queries(search_structure: Dict, max_results=50,
             time.sleep(2)
 
         try:
+            # 🔍 DEBUG: Log ArXiv query details
+            print(f"🔍 ARXIV DEBUG - Query {i+1}/{len(queries)}: '{query}'")
+            print(f"🔍 ARXIV DEBUG - Max results per query: {results_per_query}")
             
             debug_print(f"Querying arXiv with: {query}")
             
@@ -336,9 +350,14 @@ def search_arxiv_with_structured_queries(search_structure: Dict, max_results=50,
                 sort_order=arxiv_pkg.SortOrder.Descending
             )
             
+            # 🔍 DEBUG: Log before ArXiv API call
+            print(f"🔍 ARXIV DEBUG - About to call ArXiv API for query: '{query}'")
+            
             query_results = []
+            result_count = 0
             for result in search.results():
                 try:
+                    result_count += 1
                     # Extract arXiv ID and create PDF URL
                     arxiv_id = result.get_short_id()
                     pdf_url = f"https://arxiv.org/pdf/{arxiv_id}"
@@ -359,8 +378,11 @@ def search_arxiv_with_structured_queries(search_structure: Dict, max_results=50,
                     time.sleep(0.1)
                     
                 except Exception as result_error:
+                    print(f"❌ ARXIV DEBUG - Error processing individual result {result_count}: {result_error}")
                     debug_print(f"Error processing individual result: {result_error}")
             
+            # 🔍 DEBUG: Log success results
+            print(f"✅ ARXIV DEBUG - Successfully found {len(query_results)} results for query: '{query}'")
             debug_print(f"Found {len(query_results)} results for query: {query}")
             all_results.extend(query_results)
             
@@ -370,6 +392,18 @@ def search_arxiv_with_structured_queries(search_structure: Dict, max_results=50,
                 break
                 
         except Exception as e:
+            # 🔍 DEBUG: Enhanced ArXiv error logging
+            print(f"❌ ARXIV ERROR DEBUG - Query: '{query}'")
+            print(f"❌ ARXIV ERROR DEBUG - Error type: {type(e).__name__}")
+            print(f"❌ ARXIV ERROR DEBUG - Error message: {str(e)}")
+            print(f"❌ ARXIV ERROR DEBUG - Max results requested: {results_per_query}")
+            
+            # Check if it's a specific ArXiv API error
+            if hasattr(e, 'response'):
+                print(f"❌ ARXIV ERROR DEBUG - HTTP Response: {e.response}")
+            if hasattr(e, 'status_code'):
+                print(f"❌ ARXIV ERROR DEBUG - Status Code: {e.status_code}")
+            
             logger.error(f"Error with query '{query}': {e}")
             debug_print(f"ERROR: {str(e)}")
     
@@ -395,6 +429,13 @@ def search_arxiv_with_structured_queries(search_structure: Dict, max_results=50,
     debug_print(f"Returning {len(unique_results)} unique results with metadata")
     # Filter metadata to match unique URLs only
     filtered_metadata = {url: all_metadata[url] for url in unique_results if url in all_metadata}
+    
+    # 🔍 DEBUG: Log final return values
+    print(f"🔍 ARXIV DEBUG - FINAL RESULTS:")
+    print(f"🔍 ARXIV DEBUG - Unique URLs found: {len(unique_results)}")
+    print(f"🔍 ARXIV DEBUG - Metadata entries: {len(filtered_metadata)}")
+    print(f"🔍 ARXIV DEBUG - Sample URLs: {unique_results[:3] if unique_results else 'None'}")
+    
     return {
         'urls': unique_results,
         'metadata': filtered_metadata
