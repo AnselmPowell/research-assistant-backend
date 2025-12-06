@@ -329,8 +329,21 @@ ASGI_APPLICATION = 'research_assistant.asgi.application'
 
 # Channel Layers Configuration
 if IS_PRODUCTION:
-    # Use Redis for production
-    redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+    # Use Redis for production - build URL from Railway components
+    redis_host = os.environ.get('REDISHOST', 'localhost')
+    redis_port = os.environ.get('REDISPORT', '6379')
+    redis_user = os.environ.get('REDISUSER', 'default')
+    redis_password = os.environ.get('REDIS_PASSWORD', '')
+    
+    # Build Redis URL manually to avoid Railway variable interpolation issues
+    if redis_password:
+        redis_url = f"redis://{redis_user}:{redis_password}@{redis_host}:{redis_port}"
+    else:
+        # Fallback to REDIS_URL if individual components not available
+        redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+    
+    print(f"🔍 REDIS DEBUG - Connecting to: redis://{redis_user}:***@{redis_host}:{redis_port}")
+    
     CHANNEL_LAYERS = {
         'default': {
             'BACKEND': 'channels_redis.core.RedisChannelLayer',
