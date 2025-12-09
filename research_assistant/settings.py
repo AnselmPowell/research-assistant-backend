@@ -253,10 +253,17 @@ if IS_PRODUCTION:
     
     CORS_ALLOW_ALL_ORIGINS = False
     
+    # CRITICAL FIX: Explicitly set all CORS settings to ensure they work
+    CORS_ALLOWED_ORIGIN_REGEXES = []
+    CORS_ALLOW_CREDENTIALS = True
+    CORS_PREFLIGHT_MAX_AGE = 86400
+    
     # Debug: Print environment variables for troubleshooting
     print(f"🔍 CORS DEBUG - CORS_ORIGINS env: {os.environ.get('CORS_ORIGINS', 'NOT_SET')}")
     print(f"🔍 CORS DEBUG - CORS_ALLOWED_ORIGINS env: {os.environ.get('CORS_ALLOWED_ORIGINS', 'NOT_SET')}")
     print(f"🔍 CORS DEBUG - IS_PRODUCTION: {IS_PRODUCTION}")
+    print(f"🔍 CORS DEBUG - CORS_ALLOW_CREDENTIALS: {CORS_ALLOW_CREDENTIALS}")
+    print(f"🔍 CORS DEBUG - CORS_ALLOW_ALL_ORIGINS: {CORS_ALLOW_ALL_ORIGINS}")
 else:
     # In development, allow localhost origins
     CORS_ALLOWED_ORIGINS = [
@@ -264,8 +271,9 @@ else:
         "http://localhost:3001",  # Next.js development server alternate port
     ]
     CORS_ALLOW_ALL_ORIGINS = True  # For development only
+    CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOW_CREDENTIALS = True
+# CORS Methods and Headers (shared for both production and development)
 CORS_ALLOW_METHODS = [
     'DELETE',
     'GET',
