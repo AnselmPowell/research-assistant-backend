@@ -11,6 +11,8 @@ from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import timedelta
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -34,6 +36,7 @@ from .authentication import TokenManager
 from .utils import check_login_attempts, log_login_attempt, get_client_ip
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class CSRFTokenView(APIView):
     """Get CSRF token"""
     permission_classes = [AllowAny]
@@ -43,6 +46,7 @@ class CSRFTokenView(APIView):
         return JsonResponse({'csrfToken': token})
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class RegistrationView(APIView):
     """Handle user registration"""
     permission_classes = [AllowAny]
@@ -94,6 +98,7 @@ class RegistrationView(APIView):
         #     )
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class LoginView(APIView):
     """Handle user login"""
     permission_classes = [AllowAny]
@@ -231,6 +236,7 @@ class LoginView(APIView):
         # return Response(TokenResponseSerializer(response_data).data)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class SocialAuthView(APIView):
     """Handle social authentication"""
     permission_classes = [AllowAny]
