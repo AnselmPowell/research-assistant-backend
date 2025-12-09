@@ -222,9 +222,25 @@ if IS_PRODUCTION:
 # CORS settings
 if IS_PRODUCTION:
     # In production, use environment variables for CORS origins
-    cors_origins = os.environ.get('CORS_ORIGINS', '')
-    CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',') if origin.strip()]
+    # Try CORS_ORIGINS first, then fallback to CORS_ALLOWED_ORIGINS
+    cors_origins_env = os.environ.get('CORS_ORIGINS', '') or os.environ.get('CORS_ALLOWED_ORIGINS', '')
+    
+    if cors_origins_env:
+        CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins_env.split(',') if origin.strip()]
+        print(f"🔍 CORS DEBUG - Production CORS origins: {CORS_ALLOWED_ORIGINS}")
+    else:
+        # Emergency fallback - allow the known frontend URL
+        CORS_ALLOWED_ORIGINS = [
+            "https://research-assistant-frontend-production.up.railway.app"
+        ]
+        print(f"🔍 CORS DEBUG - Using emergency fallback CORS origins: {CORS_ALLOWED_ORIGINS}")
+    
     CORS_ALLOW_ALL_ORIGINS = False
+    
+    # Debug: Print environment variables for troubleshooting
+    print(f"🔍 CORS DEBUG - CORS_ORIGINS env: {os.environ.get('CORS_ORIGINS', 'NOT_SET')}")
+    print(f"🔍 CORS DEBUG - CORS_ALLOWED_ORIGINS env: {os.environ.get('CORS_ALLOWED_ORIGINS', 'NOT_SET')}")
+    print(f"🔍 CORS DEBUG - IS_PRODUCTION: {IS_PRODUCTION}")
 else:
     # In development, allow localhost origins
     CORS_ALLOWED_ORIGINS = [
@@ -329,20 +345,24 @@ ASGI_APPLICATION = 'research_assistant.asgi.application'
 
 # Channel Layers Configuration
 if IS_PRODUCTION:
-    # Use Redis for production - build URL from Railway components
-    redis_host = os.environ.get('REDISHOST', 'localhost')
-    redis_port = os.environ.get('REDISPORT', '6379')
-    redis_user = os.environ.get('REDISUSER', 'default')
-    redis_password = os.environ.get('REDIS_PASSWORD', '')
+    # Use Redis for production - Railway provides REDIS_URL directly
+    redis_url = os.environ.get('REDIS_URL')
     
-    # Build Redis URL manually to avoid Railway variable interpolation issues
-    if redis_password:
-        redis_url = f"redis://{redis_user}:{redis_password}@{redis_host}:{redis_port}"
+    if redis_url:
+        print(f"🔍 REDIS DEBUG - Using Railway REDIS_URL: {redis_url}")
     else:
-        # Fallback to REDIS_URL if individual components not available
-        redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
-    
-    print(f"🔍 REDIS DEBUG - Connecting to: redis://{redis_user}:***@{redis_host}:{redis_port}")
+        # Fallback to individual components if REDIS_URL not available
+        redis_host = os.environ.get('REDISHOST', 'localhost')
+        redis_port = os.environ.get('REDISPORT', '6379')
+        redis_user = os.environ.get('REDISUSER', 'default')
+        redis_password = os.environ.get('REDIS_PASSWORD', '')
+        
+        if redis_password:
+            redis_url = f"redis://{redis_user}:{redis_password}@{redis_host}:{redis_port}"
+            print(f"🔍 REDIS DEBUG - Built from components: redis://{redis_user}:***@{redis_host}:{redis_port}")
+        else:
+            redis_url = 'redis://localhost:6379/0'
+            print(f"🔍 REDIS DEBUG - Using fallback: localhost")
     
     CHANNEL_LAYERS = {
         'default': {
