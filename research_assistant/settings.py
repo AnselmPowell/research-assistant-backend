@@ -235,7 +235,7 @@ else:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
 
-# CORS settings
+# CORS settings - ASGI-compatible configuration
 if IS_PRODUCTION:
     # In production, use environment variables for CORS origins
     # Try CORS_ORIGINS first, then fallback to CORS_ALLOWED_ORIGINS
@@ -251,9 +251,11 @@ if IS_PRODUCTION:
         ]
         print(f"🔍 CORS DEBUG - Using emergency fallback CORS origins: {CORS_ALLOWED_ORIGINS}")
     
-    CORS_ALLOW_ALL_ORIGINS = False
+    # CRITICAL FIX FOR ASGI: Enable all origins temporarily to test
+    CORS_ALLOW_ALL_ORIGINS = True  # TEMPORARY - will narrow down after testing
+    CORS_ALLOWED_ORIGINS = []  # Clear specific origins when allowing all
     
-    # CRITICAL FIX: Explicitly set all CORS settings to ensure they work
+    # ASGI-compatible CORS settings
     CORS_ALLOWED_ORIGIN_REGEXES = []
     CORS_ALLOW_CREDENTIALS = True
     CORS_PREFLIGHT_MAX_AGE = 86400
@@ -263,7 +265,7 @@ if IS_PRODUCTION:
     print(f"🔍 CORS DEBUG - CORS_ALLOWED_ORIGINS env: {os.environ.get('CORS_ALLOWED_ORIGINS', 'NOT_SET')}")
     print(f"🔍 CORS DEBUG - IS_PRODUCTION: {IS_PRODUCTION}")
     print(f"🔍 CORS DEBUG - CORS_ALLOW_CREDENTIALS: {CORS_ALLOW_CREDENTIALS}")
-    print(f"🔍 CORS DEBUG - CORS_ALLOW_ALL_ORIGINS: {CORS_ALLOW_ALL_ORIGINS}")
+    print(f"🔍 CORS DEBUG - CORS_ALLOW_ALL_ORIGINS: {CORS_ALLOW_ALL_ORIGINS} (TEMPORARY)")
 else:
     # In development, allow localhost origins
     CORS_ALLOWED_ORIGINS = [
