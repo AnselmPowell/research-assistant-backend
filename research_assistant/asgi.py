@@ -9,19 +9,16 @@ from channels.auth import AuthMiddlewareStack
 # Set Django settings module FIRST
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'research_assistant.settings')
 
-# Initialize Django apps BEFORE importing routing
+# Initialize Django apps BEFORE any imports
 django.setup()
 
-# Initialize HTTP ASGI application
-django_asgi_app = get_asgi_application()
-
-# TEMPORARY FIX: Disable WebSocket routing to test if it's causing 502 errors
-# Try to import WebSocket routing, but fall back to HTTP-only if it fails
+# CRITICAL FIX: Try WebSocket routing first, fall back to HTTP-only
 try:
     from core.routing import websocket_urlpatterns
-    # If import succeeds, use full routing
+    
+    # Create ASGI application with full routing
     application = ProtocolTypeRouter({
-        "http": django_asgi_app,
+        "http": get_asgi_application(),  # Create Django ASGI app here
         "websocket": AuthMiddlewareStack(
             URLRouter(
                 websocket_urlpatterns
@@ -29,11 +26,13 @@ try:
         ),
     })
     print("🔌 WEBSOCKET DEBUG - Full routing with WebSocket support enabled")
+    print("🔌 ASGI DEBUG - Django HTTP app created within ProtocolTypeRouter")
+    
 except Exception as e:
-    # If import fails, use HTTP-only
+    # If WebSocket import fails, use HTTP-only with proper Django app
     print(f"🔌 WEBSOCKET DEBUG - WebSocket import failed: {e}")
     print("🔌 WEBSOCKET DEBUG - Using HTTP-only mode")
-    application = ProtocolTypeRouter({
-        "http": django_asgi_app,
-    })
-    # Use HTTP-only mode for now
+    
+    # Create HTTP-only ASGI application
+    application = get_asgi_application()
+    print("🔌 ASGI DEBUG - Using direct Django ASGI application")
