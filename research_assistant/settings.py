@@ -61,9 +61,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # MOVED TO FIRST POSITION - CRITICAL
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -76,10 +76,10 @@ MIDDLEWARE = [
     'auth_api.middleware.RateLimitMiddleware',
 ]
 
-# Add Whitenoise middleware in production only
+# Add Whitenoise middleware in production only - AFTER CORS
 if IS_PRODUCTION:
-    # Insert Whitenoise middleware after SecurityMiddleware
-    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+    # Insert Whitenoise middleware after CORS but before Security
+    MIDDLEWARE.insert(2, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 ROOT_URLCONF = 'research_assistant.urls'
 
@@ -266,6 +266,8 @@ if IS_PRODUCTION:
     print(f"🔍 CORS DEBUG - IS_PRODUCTION: {IS_PRODUCTION}")
     print(f"🔍 CORS DEBUG - CORS_ALLOW_CREDENTIALS: {CORS_ALLOW_CREDENTIALS}")
     print(f"🔍 CORS DEBUG - CORS_ALLOW_ALL_ORIGINS: {CORS_ALLOW_ALL_ORIGINS} (TEMPORARY)")
+    print(f"🔍 CORS DEBUG - MIDDLEWARE ORDER: CORS is at position 0 (FIRST)")
+    print(f"🔍 CORS DEBUG - django-cors-headers version should be compatible with ASGI")
 else:
     # In development, allow localhost origins
     CORS_ALLOWED_ORIGINS = [
