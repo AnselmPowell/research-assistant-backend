@@ -270,6 +270,22 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
+# CSRF Settings for API
+CSRF_TRUSTED_ORIGINS = []
+if IS_PRODUCTION:
+    # Add production frontend URL to CSRF trusted origins
+    frontend_url = "https://research-assistant-frontend-production.up.railway.app"
+    CSRF_TRUSTED_ORIGINS.append(frontend_url)
+    print(f"🔍 CSRF DEBUG - Production CSRF trusted origins: {CSRF_TRUSTED_ORIGINS}")
+else:
+    # Development CSRF trusted origins
+    CSRF_TRUSTED_ORIGINS = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+    ]
+
+# For API endpoints, we'll use CSRF exemption in views
+
 # API Keys
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
 GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', '')
