@@ -46,7 +46,6 @@ class CSRFTokenView(APIView):
         return JsonResponse({'csrfToken': token})
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class RegistrationView(APIView):
     """Handle user registration"""
     permission_classes = [AllowAny]
@@ -98,7 +97,6 @@ class RegistrationView(APIView):
         #     )
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class LoginView(APIView):
     """Handle user login"""
     permission_classes = [AllowAny]
@@ -236,7 +234,6 @@ class LoginView(APIView):
         # return Response(TokenResponseSerializer(response_data).data)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class SocialAuthView(APIView):
     """Handle social authentication"""
     permission_classes = [AllowAny]

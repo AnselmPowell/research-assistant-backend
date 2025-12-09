@@ -17,8 +17,6 @@ from django.http import JsonResponse
 from django.views import View
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from .models import ResearchSession, Paper, Note, Project, Section, Group
 from .serializers import (
     ResearchRequestSerializer, 
@@ -32,13 +30,8 @@ from .tasks import process_research_session
 import PyPDF2
 from .utils.debug import debug_print
 
-# Base class for API views with CSRF exemption
-@method_decorator(csrf_exempt, name='dispatch')
-class CSRFExemptAPIView(APIView):
-    """Base API view with CSRF exemption for external API calls."""
-    pass
-
-class StartResearchView(CSRFExemptAPIView):
+# Remove CSRF exemption - we now use proper CSRF for all API endpoints
+class StartResearchView(APIView):
     """View for starting a research session."""
     # Allow anyone to start research (unauthenticated or authenticated)
     permission_classes = []  # Override default authentication requirement
@@ -380,7 +373,7 @@ class DeleteNoteView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class CleanupSessionNotesView(CSRFExemptAPIView):
+class CleanupSessionNotesView(APIView):
     """View for cleaning up notes from previous sessions."""
     
     def post(self, request, format=None):

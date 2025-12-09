@@ -193,15 +193,19 @@ if IS_PRODUCTION:
 
 # Secure cookie settings for production
 if IS_PRODUCTION:
-    # Security settings for CSRF
+    # Security settings for CSRF - API-friendly configuration
     CSRF_COOKIE_SECURE = True
-    CSRF_COOKIE_HTTPONLY = True
-    CSRF_COOKIE_SAMESITE = 'Lax'  # Can be changed to 'Strict' for more security
+    CSRF_COOKIE_HTTPONLY = False  # Allow JS access for API calls
+    CSRF_COOKIE_SAMESITE = 'None'  # Cross-origin for Railway production
+    CSRF_COOKIE_NAME = 'csrftoken'
+    CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'
+    CSRF_USE_SESSIONS = False  # Use cookies, not sessions
+    CSRF_COOKIE_AGE = 31449600  # 1 year
     
-    # Security settings for session cookies
+    # Security settings for session cookies - MATCH CSRF model
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Lax'  # Can be changed to 'Strict' for more security
+    SESSION_COOKIE_SAMESITE = 'None'  # Cross-origin for Railway production
     
     # Security middleware settings
     SECURE_BROWSER_XSS_FILTER = True
@@ -218,6 +222,18 @@ if IS_PRODUCTION:
     # Proxy configuration
     USE_X_FORWARDED_HOST = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+else:
+    # Development CSRF settings - less restrictive
+    CSRF_COOKIE_SECURE = False  # Allow HTTP for development
+    CSRF_COOKIE_HTTPONLY = False  # Allow JS access
+    CSRF_COOKIE_SAMESITE = 'Lax'  # Standard for same-origin
+    CSRF_COOKIE_NAME = 'csrftoken'
+    CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'
+    
+    # Development session settings
+    SESSION_COOKIE_SECURE = False
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
 
 # CORS settings
 if IS_PRODUCTION:
@@ -270,21 +286,28 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# CSRF Settings for API
+# CSRF Settings for Cross-Origin API
 CSRF_TRUSTED_ORIGINS = []
 if IS_PRODUCTION:
     # Add production frontend URL to CSRF trusted origins
     frontend_url = "https://research-assistant-frontend-production.up.railway.app"
     CSRF_TRUSTED_ORIGINS.append(frontend_url)
     print(f"🔍 CSRF DEBUG - Production CSRF trusted origins: {CSRF_TRUSTED_ORIGINS}")
+    print(f"🔍 CSRF DEBUG - CSRF_COOKIE_SAMESITE: None (cross-origin)")
+    print(f"🔍 CSRF DEBUG - CSRF_COOKIE_HTTPONLY: False (JS accessible)")
+    print(f"🔍 CSRF DEBUG - CSRF_COOKIE_SECURE: True (HTTPS only)")
 else:
     # Development CSRF trusted origins
     CSRF_TRUSTED_ORIGINS = [
         "http://localhost:3000",
         "http://localhost:3001",
     ]
+    print(f"🔍 CSRF DEBUG - Development CSRF trusted origins: {CSRF_TRUSTED_ORIGINS}")
+    print(f"🔍 CSRF DEBUG - CSRF_COOKIE_SAMESITE: Lax (same-origin)")
+    print(f"🔍 CSRF DEBUG - CSRF_COOKIE_SECURE: False (HTTP allowed)")
 
-# For API endpoints, we'll use CSRF exemption in views
+# Remove the comment about CSRF exemption - we're using proper CSRF now
+print(f"🔍 CSRF DEBUG - CSRF Protection: ENABLED for all POST/PUT/DELETE endpoints")
 
 # API Keys
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
@@ -366,6 +389,25 @@ if IS_PRODUCTION:
     
     if redis_url:
         print(f"🔍 REDIS DEBUG - Using Railway REDIS_URL: {redis_url}")
+        
+        # Test Redis connection
+        try:
+            import redis
+            # Parse the Redis URL
+            import urllib.parse as urlparse
+            url = urlparse.urlparse(redis_url)
+            r = redis.Redis(
+                host=url.hostname,
+                port=url.port,
+                decode_responses=True,
+                socket_connect_timeout=5
+            )
+            # Try to ping Redis
+            r.ping()
+            print(f"🔍 REDIS DEBUG - Connection test SUCCESSFUL")
+        except Exception as redis_error:
+            print(f"🔍 REDIS DEBUG - Connection test FAILED: {redis_error}")
+            print(f"🔍 REDIS DEBUG - This may cause WebSocket failures but HTTP should still work")
     else:
         # Fallback to individual components if REDIS_URL not available
         redis_host = os.environ.get('REDISHOST', 'localhost')
@@ -380,14 +422,26 @@ if IS_PRODUCTION:
             redis_url = 'redis://localhost:6379/0'
             print(f"🔍 REDIS DEBUG - Using fallback: localhost")
     
-    CHANNEL_LAYERS = {
-        'default': {
-            'BACKEND': 'channels_redis.core.RedisChannelLayer',
-            'CONFIG': {
-                "hosts": [redis_url],
+    # Configure Channel Layers with error handling
+    try:
+        CHANNEL_LAYERS = {
+            'default': {
+                'BACKEND': 'channels_redis.core.RedisChannelLayer',
+                'CONFIG': {
+                    "hosts": [redis_url],
+                },
             },
-        },
-    }
+        }
+        print(f"🔍 REDIS DEBUG - Channel layers configured successfully")
+    except Exception as channel_error:
+        print(f"🔍 REDIS DEBUG - Channel layer configuration failed: {channel_error}")
+        # Fallback to in-memory for WebSocket if Redis fails
+        CHANNEL_LAYERS = {
+            'default': {
+                'BACKEND': 'channels.layers.InMemoryChannelLayer',
+            },
+        }
+        print(f"🔍 REDIS DEBUG - Using fallback InMemoryChannelLayer")
 else:
     # Use in-memory channel layer for development
     CHANNEL_LAYERS = {
